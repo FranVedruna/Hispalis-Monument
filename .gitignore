@@ -31,3 +31,22 @@ google-services.json
 
 # Android Profiling
 *.hprof
+
+### Spring Boot / Java
+/target/
+*.jar
+*.war
+*.ear
+*.log
+*.project
+*.classpath
+/.settings/
+/mvnw
+/mvnw.cmd
+/.mvn/
+!mvn/wrapper/maven-wrapper.jar
+
+### Configuración específica
+application.properties
+application.yml
+.env
