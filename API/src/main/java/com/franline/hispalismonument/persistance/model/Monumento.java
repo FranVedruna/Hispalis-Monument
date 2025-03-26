@@ -8,6 +8,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @NoArgsConstructor
@@ -48,6 +49,11 @@ public class Monumento {
             inverseJoinColumns = @JoinColumn(name = "type_id")
     )
     private List<Type> types;
+
+
+    @ManyToMany(mappedBy = "visitedMonuments")
+    private List<User> visitors = new ArrayList<>();
+
 
     @Column(name = "wiki")
     private String wikiPath;

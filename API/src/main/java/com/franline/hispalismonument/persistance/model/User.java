@@ -1,5 +1,6 @@
 package com.franline.hispalismonument.persistance.model;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
@@ -62,10 +63,16 @@ public class User implements UserDetails {
     @Column(name = "email")
     String email;
 
-    /*TODO
-    *  Añadir lista de monumentos visitados*/
+    @ManyToMany(fetch = FetchType.LAZY)
+    @JoinTable(
+            name = "user_visited_monuments",
+            joinColumns = @JoinColumn(name = "user_id"),
+            inverseJoinColumns = @JoinColumn(name = "monument_id")
+    )
+    private List<Monumento> visitedMonuments = new ArrayList<>();
 
-    @Column(name = "birth_date", nullable = true)
+
+    @Column(name = "birth_date")
     private LocalDate userBirthDate;
 
     @Column(name = "photo")
