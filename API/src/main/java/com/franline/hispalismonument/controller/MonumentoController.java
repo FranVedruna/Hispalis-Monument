@@ -1,6 +1,9 @@
 package com.franline.hispalismonument.controller;
 
+import com.franline.hispalismonument.dto.MonumentoDTO;
 import com.franline.hispalismonument.persistance.model.Monumento;
+import com.franline.hispalismonument.services.MonumentoService;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
@@ -9,10 +12,13 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
+import java.util.List;
+
 
 @RestController
 @RequestMapping("/monumentos")
 public class MonumentoController {
+
 /*
     private static final String UPLOAD_DIR = "src/main/resources/static/images/";
 

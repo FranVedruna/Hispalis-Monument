@@ -9,15 +9,6 @@ import lombok.Setter;
 
 import java.util.List;
 
-
-/***
- * Entidad ROL
- * Variables:
- *     - ID (Integer, autoincremental, not-null)
- *     - RolName (String) - Nombre del rol (USER/ADMIN)
- *     - UserWithThisRol (List<User>) @OneToMany - Lista de usuarios que usa un rol específico
- */
-
 @NoArgsConstructor
 @Getter
 @Setter

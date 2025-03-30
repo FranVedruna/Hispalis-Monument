@@ -18,18 +18,6 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
-/***
- * Entidad Usuario, implementa UserDetails para usar Spring Security con JWT
- * Variables:
- *     - ID (Integer, autoincremental, not-null)
- *     - Username (String, unique, not-null) - Nombre del usuario
- *     - Email (String, not-null) - Correo electronico del usuario
- *     - UserRol (Rol) @ManyToOne - Rol del usuario
- *     - UsersIFollow (List<User>) @ManyToMany - Lista de usuarios que sigue un usuario.
- *     - Followers (List<User>) @ManyToMany - Lista de usuarios que siguen a un usuario.
- *     - RecordScore (RecordScore) @OneToOne - Record del usuario
- */
-
 @NoArgsConstructor
 @AllArgsConstructor
 @Getter

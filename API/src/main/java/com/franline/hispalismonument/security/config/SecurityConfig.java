@@ -28,7 +28,6 @@ public class SecurityConfig {
                 .authorizeHttpRequests( authReq ->
                         authReq
                                 .requestMatchers("/api/v1/auth/**").permitAll()
-                                .requestMatchers("/images/**").permitAll()/*TODO BUSCAR COMO PERMITIR UNICAMENTE A SU USUARIO*/
                                 .anyRequest().authenticated()
                 )
                 .sessionManagement( sessionManager -> sessionManager.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
