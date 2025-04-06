@@ -1,14 +1,14 @@
 package com.franline.hispalismonument.controller;
 
+import com.franline.hispalismonument.dto.MonumentoDTO;
 import com.franline.hispalismonument.persistance.model.Monumento;
 import com.franline.hispalismonument.services.MonumentoService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestPart;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 @RestController
@@ -23,7 +23,21 @@ public class MonumentController {
     }
 
 
+    @GetMapping
+    public Page<MonumentoDTO> getAllMonumentos(Pageable pageable) {
+        return monumentoService.searchAll(pageable);
+    }
 
+    @GetMapping("/buscar")
+    public MonumentoDTO getMonumentoByName(@RequestParam String nombre) {
+        Monumento monumento = monumentoService.searchMonumentByName(nombre);
+        return new MonumentoDTO(monumento);
+    }
+
+    @GetMapping("/{id}")
+    public MonumentoDTO getMonumentoById(@PathVariable int id) {
+        return monumentoService.searchMonumentById(id);
+    }
 
     @PostMapping("/crear")
     public ResponseEntity<Monumento> createMonumento(
