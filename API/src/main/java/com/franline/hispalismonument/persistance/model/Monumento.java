@@ -30,7 +30,7 @@ public class Monumento {
     private String nombre;
 
     @NotBlank(message = "El monumento debe tener una descripción")
-    @Column(name = "description", nullable = false)
+    @Column(name = "description", nullable = false, columnDefinition = "TEXT")
     private String descripcion;
 
     @Column(name = "photo")

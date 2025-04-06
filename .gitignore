@@ -50,3 +50,4 @@ google-services.json
 application.properties
 application.yml
 .env
+/API/src/main/resources/static/images
