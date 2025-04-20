@@ -56,7 +56,13 @@ public class Login extends AppCompatActivity {
                 if (response.isSuccessful() && response.body() != null) {
                     String token = response.body().getToken();
                     new TokenManager(Login.this).saveToken(token);
-                    Toast.makeText(Login.this, "Token guardado", Toast.LENGTH_SHORT).show();
+//                    Toast.makeText(Login.this, "Token guardado", Toast.LENGTH_SHORT).show();
+
+                    // Redirigir a MainActivity
+                    Intent intent = new Intent(Login.this, HomeActivity.class);
+                    intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+                    startActivity(intent);
+                    finish(); // Opcional: cierra la actividad actual
                 } else {
                     Toast.makeText(Login.this, "Error en credenciales", Toast.LENGTH_SHORT).show();
                 }
@@ -67,9 +73,5 @@ public class Login extends AppCompatActivity {
                 Toast.makeText(Login.this, "Error de conexión", Toast.LENGTH_SHORT).show();
             }
         });
-    }
-
-    private void toRegister(){
-
     }
 }

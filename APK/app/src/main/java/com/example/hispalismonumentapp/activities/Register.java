@@ -56,10 +56,7 @@ public class Register extends AppCompatActivity {
             return;
         }
 
-        // Crear el objeto de solicitud
         RegisterRequest registerRequest = new RegisterRequest(name, email, password);
-
-        // Llamar a la API
         registerUser(registerRequest);
     }
 
@@ -71,15 +68,12 @@ public class Register extends AppCompatActivity {
             @Override
             public void onResponse(Call<ResponseDTO> call, Response<ResponseDTO> response) {
                 if (response.isSuccessful()) {
-                    // Registro exitoso
                     Toast.makeText(Register.this,
                             response.body().getMessage(), Toast.LENGTH_SHORT).show();
 
-                    // Redirigir al login
                     startActivity(new Intent(Register.this, Login.class));
                     finish();
                 } else {
-                    // Error en el registro
                     try {
                         String errorBody = response.errorBody() != null ?
                                 response.errorBody().string() : "Error desconocido";
