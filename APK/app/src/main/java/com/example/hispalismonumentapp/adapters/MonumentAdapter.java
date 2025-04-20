@@ -6,7 +6,6 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.TextView;
 import androidx.annotation.NonNull;
@@ -14,7 +13,7 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.hispalismonumentapp.R;
 import com.example.hispalismonumentapp.activities.MonumentActivity;
-import com.example.hispalismonumentapp.models.Monument;
+import com.example.hispalismonumentapp.models.MonumentoDTO;
 import com.squareup.picasso.OkHttp3Downloader;
 import com.squareup.picasso.Picasso;
 
@@ -26,10 +25,10 @@ import okhttp3.Request;
 
 public class MonumentAdapter extends RecyclerView.Adapter<MonumentAdapter.MonumentViewHolder> {
     private Context context;
-    private List<Monument> monuments;
-    private String authToken; // Añade este campo
+    private List<MonumentoDTO> monuments;
+    private String authToken;
 
-    public MonumentAdapter(Context context, List<Monument> monuments, String authToken) {
+    public MonumentAdapter(Context context, List<MonumentoDTO> monuments, String authToken) {
         this.context = context;
         this.monuments = monuments != null ? monuments : new ArrayList<>();
         this.authToken = authToken;
@@ -44,7 +43,7 @@ public class MonumentAdapter extends RecyclerView.Adapter<MonumentAdapter.Monume
 
     @Override
     public void onBindViewHolder(@NonNull MonumentViewHolder holder, int position) {
-        Monument monument = monuments.get(position);
+        MonumentoDTO monument = monuments.get(position);
 
         holder.textViewName.setText(monument.getNombre());
         holder.textViewDescription.setText(monument.getDescripcion());
@@ -53,7 +52,7 @@ public class MonumentAdapter extends RecyclerView.Adapter<MonumentAdapter.Monume
             String fullUrl = "http://hispalismonuments.duckdns.org:8080" + monument.getFotoUrl();
             Log.d("Foto", fullUrl);
 
-            // Crea un cliente OkHttp personalizado con el token
+            // Configuración de Picasso con autenticación
             OkHttpClient client = new OkHttpClient.Builder()
                     .addInterceptor(chain -> {
                         Request original = chain.request();
@@ -72,15 +71,21 @@ public class MonumentAdapter extends RecyclerView.Adapter<MonumentAdapter.Monume
             picasso.load(fullUrl)
                     .into(holder.imageView);
         }
-    }
 
+        // Configurar clic en el item
+        holder.itemView.setOnClickListener(v -> {
+            Intent intent = new Intent(context, MonumentActivity.class);
+            intent.putExtra("monument_id", monument.getId());
+            context.startActivity(intent);
+        });
+    }
 
     @Override
     public int getItemCount() {
         return monuments.size();
     }
 
-    public void updateData(List<Monument> newMonuments) {
+    public void updateData(List<MonumentoDTO> newMonuments) {
         this.monuments = newMonuments != null ? newMonuments : new ArrayList<>();
         notifyDataSetChanged();
     }
@@ -92,7 +97,6 @@ public class MonumentAdapter extends RecyclerView.Adapter<MonumentAdapter.Monume
 
         public MonumentViewHolder(@NonNull View itemView) {
             super(itemView);
-            // Asegúrate de que estos IDs coincidan con tu layout
             imageView = itemView.findViewById(R.id.imageViewMonument);
             textViewName = itemView.findViewById(R.id.textViewName);
             textViewDescription = itemView.findViewById(R.id.textViewDescription);

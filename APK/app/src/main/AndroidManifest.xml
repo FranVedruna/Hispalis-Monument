@@ -34,11 +34,14 @@
         </activity> <!-- Actividad de registro -->
         <activity
             android:name=".activities.Register"
-            android:exported="false" /> <!-- Actividad principal de la app (añadida) -->
+            android:exported="false" />
         <activity
             android:name=".activities.HomeActivity"
             android:exported="true"
             android:windowSoftInputMode="adjustPan" />
+        <activity
+            android:name=".activities.MonumentActivity"
+            android:exported="false" />
     </application>
 
 </manifest>

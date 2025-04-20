@@ -3,13 +3,10 @@ package com.example.hispalismonumentapp.network;
 
 import com.example.hispalismonumentapp.models.AuthResponse;
 import com.example.hispalismonumentapp.models.LoginRequest;
-import com.example.hispalismonumentapp.models.Monument;
 import com.example.hispalismonumentapp.models.MonumentoDTO;
-import com.example.hispalismonumentapp.models.MonumentoResponse;
+import com.example.hispalismonumentapp.models.MonumentoPageResponse;
 import com.example.hispalismonumentapp.models.RegisterRequest;
 import com.example.hispalismonumentapp.models.ResponseDTO;
-
-import java.util.List;
 
 import okhttp3.MultipartBody;
 import okhttp3.RequestBody;
@@ -32,7 +29,7 @@ public interface ApiService {
     Call<ResponseDTO> register(@Body RegisterRequest request);
 
     @GET("api/monumentos")
-    Call<MonumentoResponse> getMonumentos(
+    Call<MonumentoPageResponse> getMonumentos(
             @Header("Authorization") String authHeader,
             @Query("page") int page,
             @Query("size") int size,
@@ -41,7 +38,7 @@ public interface ApiService {
 
     @Multipart
     @POST("api/monumentos/crear")
-    Call<Monument> createMonumento(
+    Call<MonumentoDTO> createMonumento(
             @Header("Authorization") String authHeader,  // Añade este parámetro
             @Part("monumento") RequestBody monumentoJson,
             @Part MultipartBody.Part image

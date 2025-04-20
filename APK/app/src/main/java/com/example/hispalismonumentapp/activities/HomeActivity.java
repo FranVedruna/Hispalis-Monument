@@ -15,9 +15,8 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.hispalismonumentapp.R;
 import com.example.hispalismonumentapp.adapters.MonumentAdapter;
-import com.example.hispalismonumentapp.models.Monument;
 import com.example.hispalismonumentapp.models.MonumentoDTO;
-import com.example.hispalismonumentapp.models.MonumentoResponse;
+import com.example.hispalismonumentapp.models.MonumentoPageResponse;
 import com.example.hispalismonumentapp.network.ApiClient;
 import com.example.hispalismonumentapp.network.ApiService;
 import com.example.hispalismonumentapp.network.TokenManager;
@@ -37,7 +36,7 @@ public class HomeActivity extends AppCompatActivity {
     private static final String TAG = "HOME";
     private RecyclerView recyclerView;
     private MonumentAdapter adapter;
-    private List<Monument> monumentList = new ArrayList<>();
+    private List<MonumentoDTO> monumentList = new ArrayList<>(); // Cambiado de Monument a MonumentoDTO
     private TokenManager tokenManager;
     private ProgressBar progressBar;
     private TextView tvEmptyView;
@@ -93,6 +92,7 @@ public class HomeActivity extends AppCompatActivity {
 
     private void setupRecyclerView() {
         String token = tokenManager.getToken();
+        // Cambiar el adapter para usar MonumentoDTO directamente
         adapter = new MonumentAdapter(this, monumentList, token);
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
         recyclerView.setAdapter(adapter);
@@ -138,16 +138,16 @@ public class HomeActivity extends AppCompatActivity {
         }
 
         ApiService apiService = ApiClient.getApiService();
-        Call<MonumentoResponse> call = apiService.getMonumentos(
+        Call<MonumentoPageResponse> call = apiService.getMonumentos(
                 "Bearer " + token,
                 page,
                 PAGE_SIZE,
                 "nombre,asc"
         );
 
-        call.enqueue(new Callback<MonumentoResponse>() {
+        call.enqueue(new Callback<MonumentoPageResponse>() {
             @Override
-            public void onResponse(Call<MonumentoResponse> call, Response<MonumentoResponse> response) {
+            public void onResponse(Call<MonumentoPageResponse> call, Response<MonumentoPageResponse> response) {
                 isLoading = false;
                 showLoading(false);
 
@@ -174,7 +174,7 @@ public class HomeActivity extends AppCompatActivity {
             }
 
             @Override
-            public void onFailure(Call<MonumentoResponse> call, Throwable t) {
+            public void onFailure(Call<MonumentoPageResponse> call, Throwable t) {
                 isLoading = false;
                 showLoading(false);
                 Log.e(TAG, "Error de conexión: ", t);
@@ -184,20 +184,20 @@ public class HomeActivity extends AppCompatActivity {
     }
 
     private void handleApiResponse(List<MonumentoDTO> monumentosDTO, int page) {
+        // Ya no necesitamos convertDtosToModels, usamos los DTOs directamente
         if (monumentosDTO != null && monumentosDTO.size() < PAGE_SIZE) {
             isLastPage = true;
         }
 
-        List<Monument> newMonuments = convertDtosToModels(monumentosDTO);
         runOnUiThread(() -> {
             if (page == 0) {
                 monumentList.clear();
-                monumentList.addAll(newMonuments);
+                monumentList.addAll(monumentosDTO);
                 adapter.notifyDataSetChanged();
             } else {
                 int previousSize = monumentList.size();
-                monumentList.addAll(newMonuments);
-                adapter.notifyItemRangeInserted(previousSize, newMonuments.size());
+                monumentList.addAll(monumentosDTO);
+                adapter.notifyItemRangeInserted(previousSize, monumentosDTO.size());
             }
 
             // Actualizar UI
@@ -210,11 +210,11 @@ public class HomeActivity extends AppCompatActivity {
         });
     }
 
-    private List<Monument> convertDtosToModels(List<MonumentoDTO> dtos) {
-        List<Monument> monuments = new ArrayList<>();
+    private List<MonumentoDTO> convertDtosToModels(List<MonumentoDTO> dtos) {
+        List<MonumentoDTO> monuments = new ArrayList<>();
         if (dtos != null) {
             for (MonumentoDTO dto : dtos) {
-                monuments.add(new Monument(
+                monuments.add(new MonumentoDTO(
                         dto.getId(),
                         dto.getNombre(),
                         dto.getDescripcion(),

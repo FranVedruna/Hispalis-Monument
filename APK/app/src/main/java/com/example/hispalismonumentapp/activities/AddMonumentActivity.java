@@ -8,6 +8,7 @@ import android.location.Location;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Looper;
+import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageView;
@@ -23,18 +24,8 @@ import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
 
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
-import java.text.SimpleDateFormat;
-import java.util.Date;
-import java.util.Locale;
-
 import com.example.hispalismonumentapp.R;
-import com.example.hispalismonumentapp.models.Monument;
-import com.example.hispalismonumentapp.models.Monumento;
+import com.example.hispalismonumentapp.models.MonumentoDTO;
 import com.example.hispalismonumentapp.network.ApiClient;
 import com.example.hispalismonumentapp.network.ApiService;
 import com.example.hispalismonumentapp.network.TokenManager;
@@ -44,6 +35,15 @@ import com.google.android.gms.location.LocationRequest;
 import com.google.android.gms.location.LocationResult;
 import com.google.android.gms.location.LocationServices;
 import com.google.gson.Gson;
+
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import java.util.Locale;
 
 import okhttp3.MediaType;
 import okhttp3.MultipartBody;
@@ -94,7 +94,7 @@ public class AddMonumentActivity extends AppCompatActivity {
         etLongitud = findViewById(R.id.etLongitud);
         btnSelectImage = findViewById(R.id.btnSelectImage);
         btnUpload = findViewById(R.id.btnUpload);
-        btnGetLocation = findViewById(R.id.btnGetLocation); // Asegúrate de añadir este botón en tu layout
+        btnGetLocation = findViewById(R.id.btnGetLocation);
         ivPreview = findViewById(R.id.ivPreview);
 
         // Inicializar el launcher para permisos de ubicación
@@ -105,13 +105,10 @@ public class AddMonumentActivity extends AppCompatActivity {
                     Boolean coarseLocationGranted = result.get(Manifest.permission.ACCESS_COARSE_LOCATION);
 
                     if (fineLocationGranted != null && fineLocationGranted) {
-                        // Precisión fina
                         getCurrentLocation();
                     } else if (coarseLocationGranted != null && coarseLocationGranted) {
-                        // Precisión aproximada
                         getCurrentLocation();
                     } else {
-                        // Permiso denegado
                         Toast.makeText(this, "Permiso de ubicación denegado", Toast.LENGTH_SHORT).show();
                     }
                 }
@@ -144,8 +141,7 @@ public class AddMonumentActivity extends AppCompatActivity {
                 return;
             }
 
-            double latitud;
-            double longitud;
+            double latitud, longitud;
             try {
                 latitud = Double.parseDouble(latStr);
                 longitud = Double.parseDouble(lonStr);
@@ -154,7 +150,7 @@ public class AddMonumentActivity extends AppCompatActivity {
                 return;
             }
 
-            Monumento monumento = new Monumento();
+            MonumentoDTO monumento = new MonumentoDTO();
             monumento.setNombre(nombre);
             monumento.setDescripcion(descripcion);
             monumento.setLatitud(latitud);
@@ -163,16 +159,17 @@ public class AddMonumentActivity extends AppCompatActivity {
             if (imageUri != null) {
                 File imageFile = getFileFromUri(imageUri);
                 if (imageFile != null) {
-                    uploadMonumento(monumento, imageFile); // Ahora este método está definido
+                    uploadMonumento(monumento, imageFile);
                 } else {
                     Toast.makeText(this, "Error al procesar la imagen", Toast.LENGTH_SHORT).show();
                 }
+            } else {
+                Toast.makeText(this, "Selecciona una imagen", Toast.LENGTH_SHORT).show();
             }
         });
     }
 
-    private void uploadMonumento(Monumento monumento, File imageFile) {
-        // Verificar si tenemos token de autenticación
+    private void uploadMonumento(MonumentoDTO monumento, File imageFile) {
         TokenManager tokenManager = new TokenManager(this);
         String token = tokenManager.getToken();
 
@@ -183,16 +180,13 @@ public class AddMonumentActivity extends AppCompatActivity {
             return;
         }
 
-        // Mostrar progreso
         ProgressDialog progressDialog = new ProgressDialog(this);
         progressDialog.setMessage("Subiendo monumento...");
         progressDialog.setCancelable(false);
         progressDialog.show();
 
-        // Usar la instancia de ApiClient
         ApiService apiService = ApiClient.getApiService();
 
-        // Convertir Monumento a JSON
         Gson gson = new Gson();
         String monumentoJson = gson.toJson(monumento);
         RequestBody monumentoBody = RequestBody.create(
@@ -200,7 +194,6 @@ public class AddMonumentActivity extends AppCompatActivity {
                 monumentoJson
         );
 
-        // Preparar la imagen
         RequestBody imageRequestBody = RequestBody.create(
                 MediaType.parse("image/*"),
                 imageFile
@@ -211,34 +204,30 @@ public class AddMonumentActivity extends AppCompatActivity {
                 imageRequestBody
         );
 
-        // Realizar la petición
-        Call<Monument> call = apiService.createMonumento(
+        Call<MonumentoDTO> call = apiService.createMonumento(
                 "Bearer " + token,
                 monumentoBody,
                 imagePart
         );
 
-        call.enqueue(new Callback<Monument>() {
+        call.enqueue(new Callback<MonumentoDTO>() {
             @Override
-            public void onResponse(Call<Monument> call, Response<Monument> response) {
+            public void onResponse(Call<MonumentoDTO> call, Response<MonumentoDTO> response) {
                 progressDialog.dismiss();
 
                 if (response.isSuccessful()) {
-                    Monument createdMonument = response.body();
+                    MonumentoDTO createdMonument = response.body();
                     Toast.makeText(AddMonumentActivity.this,
-                            "Monumento subido: " + createdMonument.getNombre(),
+                            "Monumento subido: " + (createdMonument != null ? createdMonument.getNombre() : ""),
                             Toast.LENGTH_LONG).show();
 
-                    // Limpiar formulario después de subir
+                    // Limpiar formulario
                     etNombre.setText("");
                     etDescripcion.setText("");
                     etLatitud.setText("");
                     etLongitud.setText("");
                     ivPreview.setImageResource(android.R.color.transparent);
                     imageUri = null;
-
-                    // Opcional: cerrar la actividad
-                    // finish();
                 } else {
                     try {
                         String errorBody = response.errorBody() != null ?
@@ -255,7 +244,7 @@ public class AddMonumentActivity extends AppCompatActivity {
             }
 
             @Override
-            public void onFailure(Call<Monument> call, Throwable t) {
+            public void onFailure(Call<MonumentoDTO> call, Throwable t) {
                 progressDialog.dismiss();
                 Toast.makeText(AddMonumentActivity.this,
                         "Error de conexión: " + t.getMessage(),
@@ -297,25 +286,19 @@ public class AddMonumentActivity extends AppCompatActivity {
 
     private File getFileFromUri(Uri uri) {
         try {
-            // Crea un nombre único para el archivo temporal
             String timeStamp = new SimpleDateFormat("yyyyMMdd_HHmmss", Locale.getDefault()).format(new Date());
             String prefix = "IMG_" + timeStamp + "_";
-
-            // Crea el archivo temporal en el directorio de caché
             File tempFile = File.createTempFile(prefix, ".jpg", getCacheDir());
 
-            // Abre streams para la copia
             InputStream inputStream = getContentResolver().openInputStream(uri);
             OutputStream outputStream = new FileOutputStream(tempFile);
 
-            // Copia el contenido
             byte[] buffer = new byte[1024];
             int length;
             while ((length = inputStream.read(buffer)) > 0) {
                 outputStream.write(buffer, 0, length);
             }
 
-            // Cierra los streams
             outputStream.close();
             inputStream.close();
 
@@ -329,11 +312,9 @@ public class AddMonumentActivity extends AppCompatActivity {
     private void requestLocationPermissions() {
         if (ContextCompat.checkSelfPermission(this,
                 Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
-            // Permiso ya concedido
             getCurrentLocation();
         } else {
-            // Solicitar permiso
-            locationPermissionRequest.launch(new String[] {
+            locationPermissionRequest.launch(new String[]{
                     Manifest.permission.ACCESS_FINE_LOCATION,
                     Manifest.permission.ACCESS_COARSE_LOCATION
             });
@@ -350,7 +331,6 @@ public class AddMonumentActivity extends AppCompatActivity {
 
         Toast.makeText(this, "Obteniendo ubicación...", Toast.LENGTH_SHORT).show();
 
-        // Primero intentamos obtener la última ubicación conocida (más rápido)
         fusedLocationClient.getLastLocation()
                 .addOnCompleteListener(this, task -> {
                     if (task.isSuccessful() && task.getResult() != null) {
@@ -360,7 +340,6 @@ public class AddMonumentActivity extends AppCompatActivity {
                         Toast.makeText(AddMonumentActivity.this,
                                 "Ubicación obtenida", Toast.LENGTH_SHORT).show();
                     } else {
-                        // Si no hay última ubicación conocida, solicitamos actualizaciones
                         startLocationUpdates();
                     }
                 });
@@ -388,7 +367,4 @@ public class AddMonumentActivity extends AppCompatActivity {
         super.onPause();
         stopLocationUpdates();
     }
-
-    // Los métodos getFileFromUri y uploadMonumento permanecen igual que en tu código original
-    // ...
 }
