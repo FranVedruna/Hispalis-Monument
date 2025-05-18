@@ -6,14 +6,10 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.Toast;
 
-import androidx.activity.EdgeToEdge;
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.core.graphics.Insets;
-import androidx.core.view.ViewCompat;
-import androidx.core.view.WindowInsetsCompat;
 
 import com.example.hispalismonumentapp.R;
-import com.example.hispalismonumentapp.models.RegisterRequest;
+import com.example.hispalismonumentapp.models.auth.RegisterRequest;
 import com.example.hispalismonumentapp.models.ResponseDTO;
 import com.example.hispalismonumentapp.network.ApiClient;
 import com.example.hispalismonumentapp.network.ApiService;
@@ -24,7 +20,7 @@ import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
 
-public class Register extends AppCompatActivity {
+public class RegisterActivity extends AppCompatActivity {
 
     private EditText etName, etEmail, etPassword;
     private Button btnRegister;
@@ -68,16 +64,16 @@ public class Register extends AppCompatActivity {
             @Override
             public void onResponse(Call<ResponseDTO> call, Response<ResponseDTO> response) {
                 if (response.isSuccessful()) {
-                    Toast.makeText(Register.this,
+                    Toast.makeText(RegisterActivity.this,
                             response.body().getMessage(), Toast.LENGTH_SHORT).show();
 
-                    startActivity(new Intent(Register.this, Login.class));
+                    startActivity(new Intent(RegisterActivity.this, LoginActivity.class));
                     finish();
                 } else {
                     try {
                         String errorBody = response.errorBody() != null ?
                                 response.errorBody().string() : "Error desconocido";
-                        Toast.makeText(Register.this,
+                        Toast.makeText(RegisterActivity.this,
                                 "Error: " + errorBody, Toast.LENGTH_LONG).show();
                     } catch (IOException e) {
                         e.printStackTrace();
@@ -87,7 +83,7 @@ public class Register extends AppCompatActivity {
 
             @Override
             public void onFailure(Call<ResponseDTO> call, Throwable t) {
-                Toast.makeText(Register.this,
+                Toast.makeText(RegisterActivity.this,
                         "Error de conexión: " + t.getMessage(), Toast.LENGTH_SHORT).show();
             }
         });

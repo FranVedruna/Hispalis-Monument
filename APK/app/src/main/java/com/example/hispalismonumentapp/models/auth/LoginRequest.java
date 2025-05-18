@@ -1,4 +1,4 @@
-package com.example.hispalismonumentapp.models;
+package com.example.hispalismonumentapp.models.auth;
 
 public class LoginRequest {
     private String name;

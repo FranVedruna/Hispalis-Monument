@@ -1,65 +1,131 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout
-    android:id="@+id/main"
-    xmlns:android="http://schemas.android.com/apk/res/android"
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:orientation="vertical"
-    android:padding="16dp">
+    android:fillViewport="true">
 
-    <EditText
-        android:id="@+id/etNombre"
+    <LinearLayout
+        android:id="@+id/main"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:hint="Nombre del Monumento" />
+        android:orientation="vertical"
+        android:padding="16dp">
 
-    <EditText
-        android:id="@+id/etDescripcion"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:hint="Descripción" />
+        <EditText
+            android:id="@+id/etNombre"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="Nombre del Monumento" />
 
-    <EditText
-        android:id="@+id/etLatitud"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:hint="Latitud"
-        android:inputType="numberDecimal" />
+        <EditText
+            android:id="@+id/etDescripcionEs"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="Descripción en español"
+            android:inputType="textMultiLine"
+            android:lines="4"
+            android:maxLength="2000" />
 
-    <EditText
-        android:id="@+id/etLongitud"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:hint="Longitud"
-        android:inputType="numberDecimal" />
+        <EditText
+            android:id="@+id/etDescripcionEn"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="Descripción en inglés"
+            android:inputType="textMultiLine"
+            android:lines="4"
+            android:maxLength="2000" />
 
-    <Button
-        android:id="@+id/btnSelectImage"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Seleccionar Imagen" />
+        <Button
+            android:id="@+id/btnGenerateDescription"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:layout_marginBottom="16dp"
+            android:text="Generar descripciones automáticas" />
 
-    <ImageView
-        android:id="@+id/ivPreview"
-        android:layout_width="200dp"
-        android:layout_height="200dp"
-        android:layout_marginTop="8dp"
-        android:scaleType="centerCrop"
-        android:contentDescription="Vista previa de la imagen"
-        android:background="#CCCCCC" />
+        <!-- LinearLayout Horizontal para Latitud y Longitud -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:weightSum="2">
 
-    <Button
-        android:id="@+id/btnUpload"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Subir Monumento"
-        android:layout_marginTop="16dp" />
+            <EditText
+                android:id="@+id/etLatitud"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:hint="Latitud"
+                android:inputType="numberDecimal" />
 
-    <Button
-        android:id="@+id/btnGetLocation"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Obtener mi ubicación"
-        android:layout_margin="8dp" />
+            <EditText
+                android:id="@+id/etLongitud"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:hint="Longitud"
+                android:inputType="numberDecimal" />
+        </LinearLayout>
 
-</LinearLayout>
+        <Button
+            android:id="@+id/btnGetLocation"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_margin="8dp"
+            android:text="Obtener mi ubicación" />
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            android:text="Selecciona tipos (máx. 3)"
+            android:textStyle="bold" />
+
+        <LinearLayout
+            android:id="@+id/typesContainer"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:orientation="vertical" />
+
+        <ImageView
+            android:id="@+id/ivPreview"
+            android:layout_width="150dp"
+            android:layout_height="150dp"
+            android:layout_gravity="center"
+            android:layout_marginTop="8dp"
+            android:background="#CCCCCC"
+            android:contentDescription="Vista previa de la imagen"
+            android:scaleType="centerCrop" />
+
+        <!-- Cambiar LinearLayout Horizontal a tener los botones con match_parent -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center">
+
+            <Button
+                android:id="@+id/btnSelectImage"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="Seleccionar Imagen" />
+
+            <Button
+                android:id="@+id/btnTakePicture"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="Tomar Foto"/>
+        </LinearLayout>
+
+        <Button
+            android:id="@+id/btnUpload"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            android:text="Subir Monumento" />
+
+    </LinearLayout>
+</ScrollView>

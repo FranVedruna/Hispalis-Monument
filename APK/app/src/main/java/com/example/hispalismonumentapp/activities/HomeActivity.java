@@ -2,7 +2,6 @@ package com.example.hispalismonumentapp.activities;
 
 import android.content.Intent;
 import android.os.Bundle;
-import android.view.View;
 import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
@@ -15,12 +14,10 @@ import com.example.hispalismonumentapp.fragments.MonumentsFragment;
 import com.example.hispalismonumentapp.fragments.ProfileFragment;
 import com.example.hispalismonumentapp.network.TokenManager;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
-import com.google.android.material.floatingactionbutton.FloatingActionButton;
 
 public class HomeActivity extends AppCompatActivity {
 
     private BottomNavigationView bottomNavigation;
-    private FloatingActionButton fabAddMonument;
     private TokenManager tokenManager;
 
     @Override
@@ -28,39 +25,75 @@ public class HomeActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_home);
 
+        // Inicialización del TokenManager
         tokenManager = new TokenManager(this);
-        if (!checkAuth()) return;
 
+        // Verificar autenticación
+        if (!checkAuth()) {
+            return;
+        }
+
+        // Inicializar vistas
         initializeViews();
+
+        // Configurar navegación
         setupNavigation();
+
+        // Cargar fragment inicial
         loadInitialFragment();
     }
 
+    /**
+     * Verifica si el usuario está autenticado
+     */
     private boolean checkAuth() {
         String token = tokenManager.getToken();
         if (token == null || token.isEmpty()) {
             Toast.makeText(this, "No autenticado", Toast.LENGTH_SHORT).show();
-            startActivity(new Intent(this, Login.class));
+            startActivity(new Intent(this, LoginActivity.class));
             finish();
             return false;
         }
         return true;
     }
 
+    /**
+     * Inicializa las vistas principales
+     */
     private void initializeViews() {
         bottomNavigation = findViewById(R.id.bottom_navigation);
-        fabAddMonument = findViewById(R.id.fabAddMonument);
     }
 
+    /**
+     * Configura la navegación y los listeners
+     */
     private void setupNavigation() {
-        bottomNavigation.setOnItemSelectedListener(navListener);
+        bottomNavigation.setOnItemSelectedListener(item -> {
+            Fragment selectedFragment = null;
+            int itemId = item.getItemId();
 
-        fabAddMonument.setOnClickListener(v -> {
-            Intent intent = new Intent(this, AddMonumentActivity.class);
-            startActivity(intent);
+            if (itemId == R.id.nav_home) {
+                selectedFragment = new HomeFragment();
+            } else if (itemId == R.id.nav_monuments) {
+                selectedFragment = new MonumentsFragment();
+            } else if (itemId == R.id.nav_community) {
+                selectedFragment = new CommunityFragment();
+            } else if (itemId == R.id.nav_profile) {
+                selectedFragment = new ProfileFragment();
+            }
+
+            if (selectedFragment != null) {
+                getSupportFragmentManager().beginTransaction()
+                        .replace(R.id.fragment_container, selectedFragment)
+                        .commit();
+            }
+            return true;
         });
     }
 
+    /**
+     * Carga el fragment inicial (HomeFragment)
+     */
     private void loadInitialFragment() {
         if (getSupportFragmentManager().findFragmentById(R.id.fragment_container) == null) {
             getSupportFragmentManager().beginTransaction()
@@ -69,29 +102,8 @@ public class HomeActivity extends AppCompatActivity {
         }
     }
 
-    private final BottomNavigationView.OnItemSelectedListener navListener = item -> {
-        Fragment selectedFragment = null;
-        int itemId = item.getItemId();
-
-        if (itemId == R.id.nav_home) {
-            selectedFragment = new HomeFragment();
-            fabAddMonument.show();
-        } else if (itemId == R.id.nav_monuments) {
-            selectedFragment = new MonumentsFragment();
-            fabAddMonument.hide();
-        } else if (itemId == R.id.nav_community) {
-            selectedFragment = new CommunityFragment();
-            fabAddMonument.hide();
-        } else if (itemId == R.id.nav_profile) {
-            selectedFragment = new ProfileFragment();
-            fabAddMonument.hide();
-        }
-
-        if (selectedFragment != null) {
-            getSupportFragmentManager().beginTransaction()
-                    .replace(R.id.fragment_container, selectedFragment)
-                    .commit();
-        }
-        return true;
-    };
+    @Override
+    protected void onResume() {
+        super.onResume();
+    }
 }

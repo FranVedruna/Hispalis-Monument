@@ -6,9 +6,10 @@ public class MonumentoPageResponse {
     private List<MonumentoDTO> content;
     private int totalPages;
     private long totalElements;
-    private int currentPage;
-    private int pageSize;
-
+    private int number;  // currentPage
+    private int size;    // pageSize
+    private boolean first;
+    private boolean last;
 
     // Getters y setters
     public List<MonumentoDTO> getContent() {
@@ -36,18 +37,27 @@ public class MonumentoPageResponse {
     }
 
     public int getCurrentPage() {
-        return currentPage;
-    }
-
-    public void setCurrentPage(int currentPage) {
-        this.currentPage = currentPage;
+        return number;
     }
 
     public int getPageSize() {
-        return pageSize;
+        return size;
     }
 
-    public void setPageSize(int pageSize) {
-        this.pageSize = pageSize;
+    public boolean isFirst() {
+        return first;
+    }
+
+    public boolean isLast() {
+        return last;
+    }
+
+    // Métodos adicionales útiles
+    public boolean hasNext() {
+        return !isLast();
+    }
+
+    public boolean hasPrevious() {
+        return !isFirst();
     }
 }

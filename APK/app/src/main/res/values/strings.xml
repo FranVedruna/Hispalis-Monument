@@ -2,4 +2,12 @@
     <string name="app_name">HispalisMonumentAPP</string>
     <!-- TODO: Remove or change this placeholder text -->
     <string name="hello_blank_fragment">Hello blank fragment</string>
+    <string name="login_user_input">Usuario</string>
+    <string name="login_pass_input">Contraseña</string>
+    <string name="login_log_button">Ingresar</string>
+    <string name="login_or_text_view">O</string>
+    <string name="login_signup_button">Registrarse</string>
+    <!-- Strings used for fragments for navigation -->
+    <string name="google_maps_api_key">AIzaSyDTieB1jfyrgF_3Q8vzTLsPfHsMbhGqk8w</string>
+    <string name="monument_image">Imagen del monumento</string>
 </resources>

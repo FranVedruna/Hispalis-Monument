@@ -1,27 +1,24 @@
 package com.example.hispalismonumentapp.adapters;
 
 import android.content.Context;
-import android.content.Intent;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.TextView;
+
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.bumptech.glide.Glide;
+import com.bumptech.glide.load.model.GlideUrl;
+import com.bumptech.glide.load.model.LazyHeaders;
 import com.example.hispalismonumentapp.R;
-import com.example.hispalismonumentapp.activities.MonumentActivity;
 import com.example.hispalismonumentapp.models.MonumentoDTO;
-import com.squareup.picasso.OkHttp3Downloader;
-import com.squareup.picasso.Picasso;
 
 import java.util.ArrayList;
 import java.util.List;
-
-import okhttp3.OkHttpClient;
-import okhttp3.Request;
 
 public class MonumentAdapter extends RecyclerView.Adapter<MonumentAdapter.MonumentViewHolder> {
     private Context context;
@@ -46,48 +43,31 @@ public class MonumentAdapter extends RecyclerView.Adapter<MonumentAdapter.Monume
         MonumentoDTO monument = monuments.get(position);
 
         holder.textViewName.setText(monument.getNombre());
-        holder.textViewDescription.setText(monument.getDescripcion());
+        holder.textViewDescription.setText(monument.getDescripcionEs());
 
         if (monument.getFotoUrl() != null && !monument.getFotoUrl().isEmpty()) {
             String fullUrl = "http://hispalismonuments.duckdns.org:8080" + monument.getFotoUrl();
             Log.d("Foto", fullUrl);
 
-            // Configuración de Picasso con autenticación
-            OkHttpClient client = new OkHttpClient.Builder()
-                    .addInterceptor(chain -> {
-                        Request original = chain.request();
-                        Request request = original.newBuilder()
-                                .header("Authorization", "Bearer " + authToken)
-                                .method(original.method(), original.body())
-                                .build();
-                        return chain.proceed(request);
-                    })
-                    .build();
+            GlideUrl glideUrl = new GlideUrl(fullUrl, new LazyHeaders.Builder()
+                    .addHeader("Authorization", "Bearer " + authToken)
+                    .build());
 
-            Picasso picasso = new Picasso.Builder(context)
-                    .downloader(new OkHttp3Downloader(client))
-                    .build();
-
-            picasso.load(fullUrl)
+            Glide.with(context)
+                    .load(glideUrl)
+                    .placeholder(R.drawable.monument_icon)
+                    .error(R.drawable.monument_icon)
                     .into(holder.imageView);
+        } else {
+            holder.imageView.setImageResource(R.drawable.monument_icon);
         }
 
-        // Configurar clic en el item
-        holder.itemView.setOnClickListener(v -> {
-            Intent intent = new Intent(context, MonumentActivity.class);
-            intent.putExtra("monument_id", monument.getId());
-            context.startActivity(intent);
-        });
+        // No click action here
     }
 
     @Override
     public int getItemCount() {
         return monuments.size();
-    }
-
-    public void updateData(List<MonumentoDTO> newMonuments) {
-        this.monuments = newMonuments != null ? newMonuments : new ArrayList<>();
-        notifyDataSetChanged();
     }
 
     public static class MonumentViewHolder extends RecyclerView.ViewHolder {

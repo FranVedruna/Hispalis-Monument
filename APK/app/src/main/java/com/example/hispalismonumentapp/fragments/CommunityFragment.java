@@ -1,66 +1,103 @@
 package com.example.hispalismonumentapp.fragments;
 
 import android.os.Bundle;
-
-import androidx.fragment.app.Fragment;
-
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Button;
+import android.widget.Toast;
+
+import androidx.fragment.app.Fragment;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.hispalismonumentapp.R;
+import com.example.hispalismonumentapp.adapters.UserAdapter;
+import com.example.hispalismonumentapp.network.ApiClient;
+import com.example.hispalismonumentapp.network.ApiService;
+import com.example.hispalismonumentapp.models.UserDTO;
+import com.example.hispalismonumentapp.models.UserPageResponse;
+import com.example.hispalismonumentapp.network.TokenManager;
 
-/**
- * A simple {@link Fragment} subclass.
- * Use the {@link CommunityFragment#newInstance} factory method to
- * create an instance of this fragment.
- */
+import java.util.ArrayList;
+
+import retrofit2.Call;
+import retrofit2.Callback;
+import retrofit2.Response;
+
 public class CommunityFragment extends Fragment {
 
-    // TODO: Rename parameter arguments, choose names that match
-    // the fragment initialization parameters, e.g. ARG_ITEM_NUMBER
-    private static final String ARG_PARAM1 = "param1";
-    private static final String ARG_PARAM2 = "param2";
-
-    // TODO: Rename and change types of parameters
-    private String mParam1;
-    private String mParam2;
+    private RecyclerView recyclerView;
+    private Button buttonNext, buttonPrevious;
+    private UserAdapter adapter;
+    private int currentPage = 0;
+    private int totalPages = 1;
 
     public CommunityFragment() {
         // Required empty public constructor
     }
 
-    /**
-     * Use this factory method to create a new instance of
-     * this fragment using the provided parameters.
-     *
-     * @param param1 Parameter 1.
-     * @param param2 Parameter 2.
-     * @return A new instance of fragment CommunityFragment.
-     */
-    // TODO: Rename and change types and number of parameters
-    public static CommunityFragment newInstance(String param1, String param2) {
-        CommunityFragment fragment = new CommunityFragment();
-        Bundle args = new Bundle();
-        args.putString(ARG_PARAM1, param1);
-        args.putString(ARG_PARAM2, param2);
-        fragment.setArguments(args);
-        return fragment;
-    }
-
-    @Override
-    public void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        if (getArguments() != null) {
-            mParam1 = getArguments().getString(ARG_PARAM1);
-            mParam2 = getArguments().getString(ARG_PARAM2);
-        }
-    }
-
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
-        // Inflate the layout for this fragment
-        return inflater.inflate(R.layout.fragment_community, container, false);
+        View view = inflater.inflate(R.layout.fragment_community, container, false);
+
+        recyclerView = view.findViewById(R.id.recyclerViewUsers);
+        recyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
+
+        adapter = new UserAdapter(getContext(), new ArrayList<>());
+        recyclerView.setAdapter(adapter);
+
+        buttonNext = view.findViewById(R.id.buttonNext);
+        buttonPrevious = view.findViewById(R.id.buttonPrevious);
+
+        buttonNext.setOnClickListener(v -> {
+            if (currentPage < totalPages - 1) {
+                currentPage++;
+                loadUsers();
+            }
+        });
+
+        buttonPrevious.setOnClickListener(v -> {
+            if (currentPage > 0) {
+                currentPage--;
+                loadUsers();
+            }
+        });
+
+        loadUsers(); // carga inicial
+
+        return view;
     }
+
+    private void loadUsers() {
+        TokenManager tokenManager = new TokenManager(requireContext());
+        String token = tokenManager.getToken();
+
+        if (token == null) {
+            Toast.makeText(getContext(), "Token no disponible", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        ApiService apiService = ApiClient.getApiService();
+        Call<UserPageResponse> call = apiService.getUsers("Bearer " + token, currentPage, 10);
+
+        call.enqueue(new Callback<UserPageResponse>() {
+            @Override
+            public void onResponse(Call<UserPageResponse> call, Response<UserPageResponse> response) {
+                if (response.isSuccessful() && response.body() != null) {
+                    adapter.updateUsers(response.body().getContent());
+                    totalPages = response.body().getTotalPages();
+                } else {
+                    Toast.makeText(getContext(), "Error al obtener datos", Toast.LENGTH_SHORT).show();
+                }
+            }
+
+            @Override
+            public void onFailure(Call<UserPageResponse> call, Throwable t) {
+                Toast.makeText(getContext(), "Fallo de red", Toast.LENGTH_SHORT).show();
+            }
+        });
+    }
+
 }

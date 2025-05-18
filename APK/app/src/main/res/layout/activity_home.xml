@@ -17,16 +17,4 @@
         android:layout_alignParentBottom="true"
         app:menu="@menu/bottom_nav_menu"/>
 
-    <com.google.android.material.floatingactionbutton.FloatingActionButton
-        android:id="@+id/fabAddMonument"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_alignParentBottom="true"
-        android:layout_alignParentEnd="true"
-        android:layout_margin="16dp"
-        android:contentDescription="Añadir monumento"
-        android:src="@drawable/ic_add"
-        app:layout_anchor="@id/bottom_navigation"
-        app:layout_anchorGravity="top|end"/>
-
 </RelativeLayout>

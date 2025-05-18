@@ -6,7 +6,8 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
-    tools:context=".activities.Login">
+    android:padding="16dp"
+    tools:context=".activities.LoginActivity">
 
     <ImageView
         android:id="@+id/imageView"
@@ -14,12 +15,19 @@
         android:layout_height="242dp"
         tools:srcCompat="@tools:sample/backgrounds/scenic" />
 
+    <!-- Spinner para selección de servidor -->
+    <Spinner
+        android:id="@+id/serverSpinner"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="16dp"/>
+
     <EditText
         android:id="@+id/userInput"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:ems="10"
-        android:hint="Usuario"
+        android:hint="@string/login_user_input"
         android:inputType="text" />
 
     <EditText
@@ -27,25 +35,46 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:ems="10"
-        android:hint="Contraseña"
+        android:hint="@string/login_pass_input"
         android:inputType="textPassword" />
 
     <Button
         android:id="@+id/loginButton"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="Ingresar" />
+        android:text="@string/login_log_button" />
 
     <TextView
         android:id="@+id/tv"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="or" />
+        android:text="@string/login_or_text_view" />
 
     <Button
         android:id="@+id/registerButton"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="Registrarse" />
+        android:text="@string/login_signup_button" />
 
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:paddingTop="16dp"
+        android:paddingBottom="16dp">
+
+        <Button
+            android:id="@+id/buttonSpanish"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="Español" />
+
+        <Button
+            android:id="@+id/buttonEnglish"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="English" />
+    </LinearLayout>
 </LinearLayout>

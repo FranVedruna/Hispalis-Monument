@@ -1,4 +1,4 @@
-package com.example.hispalismonumentapp.models;
+package com.example.hispalismonumentapp.models.auth;
 
 public class AuthResponse {
     private String token;

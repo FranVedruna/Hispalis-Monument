@@ -6,8 +6,13 @@
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
     <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
+    <uses-permission android:name="android.permission.CAMERA" />
+
+    <uses-feature android:name="android.hardware.camera" />
+    <uses-feature android:name="android.hardware.camera.autofocus" />
 
     <application
+        android:name=".MyApp"
         android:allowBackup="true"
         android:dataExtractionRules="@xml/data_extraction_rules"
         android:fullBackupContent="@xml/backup_rules"
@@ -20,11 +25,21 @@
         android:usesCleartextTraffic="true"
         tools:targetApi="31">
         <activity
-            android:name=".activities.AddMonumentActivity"
+            android:name=".activities.UserActivity"
             android:exported="false" />
-        <!-- Actividad principal de inicio (Login) -->
+
+        <meta-data
+            android:name="com.google.android.geo.API_KEY"
+            android:value="AIzaSyDTieB1jfyrgF_3Q8vzTLsPfHsMbhGqk8w" />
+
         <activity
-            android:name=".activities.Login"
+            android:name=".activities.NavigationActivity"
+            android:exported="false" />
+        <activity
+            android:name=".activities.AddMonumentActivity"
+            android:exported="false" /> <!-- Actividad principal de inicio (Login) -->
+        <activity
+            android:name=".activities.LoginActivity"
             android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
@@ -33,7 +48,7 @@
             </intent-filter>
         </activity> <!-- Actividad de registro -->
         <activity
-            android:name=".activities.Register"
+            android:name=".activities.RegisterActivity"
             android:exported="false" />
         <activity
             android:name=".activities.HomeActivity"
@@ -42,6 +57,16 @@
         <activity
             android:name=".activities.MonumentActivity"
             android:exported="false" />
+
+        <provider
+            android:name="androidx.core.content.FileProvider"
+            android:authorities="com.example.hispalismonumentapp.fileprovider"
+            android:exported="false"
+            android:grantUriPermissions="true">
+            <meta-data
+                android:name="android.support.FILE_PROVIDER_PATHS"
+                android:resource="@xml/file_paths" />
+        </provider>
     </application>
 
 </manifest>
