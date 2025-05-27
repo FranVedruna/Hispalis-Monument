@@ -28,4 +28,11 @@ public class Type {
 
     @ManyToMany(mappedBy = "types", fetch = FetchType.LAZY)
     private List<Monumento> monumentos;
+
+    @Override
+    public String toString() {
+        return "Type{" +
+                "typeName='" + typeName + '\'' +
+                '}';
+    }
 }

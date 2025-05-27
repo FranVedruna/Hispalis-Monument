@@ -3,10 +3,7 @@ package com.franline.hispalismonument.persistance.model;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -29,9 +26,15 @@ public class Monumento {
     @Column(name = "name", nullable = false, unique = true)
     private String nombre;
 
-    @NotBlank(message = "El monumento debe tener una descripción")
-    @Column(name = "description", nullable = false, columnDefinition = "TEXT")
-    private String descripcion;
+    // Nueva descripción en español
+    @NotBlank(message = "El monumento debe tener una descripción en español")
+    @Column(name = "description_es", nullable = false, columnDefinition = "TEXT")
+    private String descripcionEs;
+
+    // Nueva descripción en inglés
+    @NotBlank(message = "El monumento debe tener una descripción en inglés")
+    @Column(name = "description_en", nullable = false, columnDefinition = "TEXT")
+    private String descripcionEn;
 
     @Column(name = "photo")
     private String fotoUrl;
@@ -57,4 +60,24 @@ public class Monumento {
 
     @Column(name = "wiki")
     private String wikiPath;
+
+    @Override
+    public String toString() {
+        String mensaje = "";
+        for (int i = 0; i < types.size(); i++) {
+            mensaje += types.get(i) + " ,";
+        }
+        return "Monumento{" +
+                "id=" + id +
+                ", nombre='" + nombre + '\'' +
+                ", descripcionEs='" + descripcionEs + '\'' +
+                ", descripcionEn='" + descripcionEn + '\'' +
+                ", fotoUrl='" + fotoUrl + '\'' +
+                ", latitud=" + latitud +
+                ", longitud=" + longitud +
+                ", types= " + mensaje +
+                ", visitors=" + visitors +
+                ", wikiPath='" + wikiPath + '\'' +
+                '}';
+    }
 }
