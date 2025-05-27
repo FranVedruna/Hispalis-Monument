@@ -28,6 +28,9 @@ import com.bumptech.glide.Glide;
 import com.bumptech.glide.load.model.GlideUrl;
 import com.bumptech.glide.load.model.LazyHeaders;
 import com.example.hispalismonumentapp.R;
+import com.example.hispalismonumentapp.activities.LoginActivity;
+import com.example.hispalismonumentapp.adapters.MonumentAdapterHome;
+import com.example.hispalismonumentapp.models.MonumentoDTO;
 import com.example.hispalismonumentapp.models.UserDTO;
 import com.example.hispalismonumentapp.network.ApiClient;
 import com.example.hispalismonumentapp.network.ApiService;
@@ -37,6 +40,9 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import okhttp3.MediaType;
 import okhttp3.MultipartBody;
@@ -47,6 +53,9 @@ import retrofit2.Callback;
 import retrofit2.Response;
 import retrofit2.Retrofit;
 import retrofit2.converter.gson.GsonConverterFactory;
+
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
 
 
 public class ProfileFragment extends Fragment {
@@ -60,8 +69,13 @@ public class ProfileFragment extends Fragment {
     private Button btnSelectFromGallery, btnTakePhoto;
     private Button btnSaveProfile;
     private ImageButton btnEditProfile;
+    private ImageView ivMedal;
+    private TextView tvDeleteAccount;
     private static final int REQUEST_GALLERY = 1001;
     private static final int REQUEST_CAMERA = 1002;
+    private RecyclerView rvVisitedMonuments;
+    private MonumentAdapterHome monumentAdapter;
+    private List<MonumentoDTO> visitedMonuments = new ArrayList<>();
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -84,7 +98,7 @@ public class ProfileFragment extends Fragment {
 
         tvUserName = view.findViewById(R.id.tvUserName);
         tvUserRole = view.findViewById(R.id.tvUserRole);
-        tvVisitedMonuments = view.findViewById(R.id.tvVisitedMonuments);
+//        tvVisitedMonuments = view.findViewById(R.id.tvVisitedMonuments);
         progressBar = view.findViewById(R.id.progressBar);
         ivProfilePicture = view.findViewById(R.id.ivProfilePicture);
         layoutImageButtons = view.findViewById(R.id.layoutImageButtons);
@@ -92,7 +106,17 @@ public class ProfileFragment extends Fragment {
         btnTakePhoto = view.findViewById(R.id.btnTakePhoto);
         btnEditProfile = view.findViewById(R.id.btnEditProfile);
         btnSaveProfile = view.findViewById(R.id.btnSaveProfile);
+        ivMedal = view.findViewById(R.id.ivMedal);
         layoutImageButtons.setVisibility(View.GONE);
+        tvDeleteAccount = view.findViewById(R.id.tvDeleteAccount);
+        rvVisitedMonuments = view.findViewById(R.id.rvVisitedMonuments);
+        rvVisitedMonuments.setLayoutManager(new LinearLayoutManager(getContext()));
+        monumentAdapter = new MonumentAdapterHome(getContext(), visitedMonuments, tokenManager.getToken());
+        rvVisitedMonuments.setAdapter(monumentAdapter);
+
+        tvDeleteAccount.setOnClickListener(v -> {
+            deleteUserAccount();
+        });
 
         btnSelectFromGallery.setOnClickListener(v -> {
             Intent intent = new Intent(Intent.ACTION_PICK);
@@ -128,6 +152,87 @@ public class ProfileFragment extends Fragment {
         return view;
     }
 
+
+    private void deleteUserAccount() {
+        String token = tokenManager.getToken();
+        if (token == null) {
+            showError("No autenticado");
+            return;
+        }
+
+        progressBar.setVisibility(View.VISIBLE);
+
+        apiService.deleteUser("Bearer " + token).enqueue(new Callback<ResponseBody>() {
+            @Override
+            public void onResponse(Call<ResponseBody> call, Response<ResponseBody> response) {
+                progressBar.setVisibility(View.GONE);
+                if (response.isSuccessful()) {
+                    Toast.makeText(getContext(), "Usuario eliminado", Toast.LENGTH_LONG).show();
+                    // Redirigir a LoginActivity
+                    Intent intent = new Intent(requireContext(), LoginActivity.class);
+                    intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK); // Limpia el backstack
+                    startActivity(intent);
+                } else {
+                    showError("Error al eliminar cuenta: " + response.code());
+                }
+            }
+
+            @Override
+            public void onFailure(Call<ResponseBody> call, Throwable t) {
+                progressBar.setVisibility(View.GONE);
+                showError("Error de conexión: " + t.getMessage());
+            }
+        });
+    }
+
+    private void getVisitedCountAndHandle(String username) {
+        String token = tokenManager.getToken();
+        if (token == null) {
+            showError("No autenticado");
+            return;
+        }
+        String authHeader = "Bearer " + token;
+
+        apiService.getVisitedMonumentCount(authHeader, username).enqueue(new Callback<Integer>() {
+            @Override
+            public void onResponse(Call<Integer> call, Response<Integer> response) {
+                progressBar.setVisibility(View.GONE);
+                if (response.isSuccessful()) {
+                    int count = response.body();
+                    Log.d("VisitedCount", "Monumentos visitados: " + count);
+
+                    // Ocultar medalla primero
+                    ivMedal.setVisibility(View.GONE);
+
+                    // Cambiar medalla según el número de monumentos
+                    if (count >= 5 && count < 10) {
+                        ivMedal.setVisibility(View.VISIBLE);
+                        ivMedal.setImageResource(R.drawable.medalla_bronce);
+                    } else if (count >= 10 && count < 15) {
+                        ivMedal.setVisibility(View.VISIBLE);
+                        ivMedal.setImageResource(R.drawable.medalla_plata);
+                    } else if (count >= 15) {
+                        ivMedal.setVisibility(View.VISIBLE);
+                        ivMedal.setImageResource(R.drawable.medalla_oro);
+                    } else {
+                        ivMedal.setVisibility(View.GONE);
+                    }
+                } else {
+                    showError("Error al obtener el recuento: " + response.code());
+                }
+            }
+
+            @Override
+            public void onFailure(Call<Integer> call, Throwable t) {
+                progressBar.setVisibility(View.GONE);
+                showError("Fallo en recuento: " + t.getMessage());
+            }
+        });
+    }
+
+
+
+
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
@@ -147,10 +252,14 @@ public class ProfileFragment extends Fragment {
         apiService.getCurrentUser(authHeader).enqueue(new Callback<UserDTO>() {
             @Override
             public void onResponse(Call<UserDTO> call, Response<UserDTO> response) {
-                progressBar.setVisibility(View.GONE);
                 if (response.isSuccessful() && response.body() != null) {
-                    displayUserData(response.body());
+                    UserDTO user = response.body();
+                    displayUserData(user);
+
+                    // Llamada adicional al endpoint /visited/count
+                    getVisitedCountAndHandle(user.getUserName());
                 } else {
+                    progressBar.setVisibility(View.GONE);
                     showError("Error al cargar datos: " + response.code());
                 }
             }
@@ -163,22 +272,22 @@ public class ProfileFragment extends Fragment {
         });
     }
 
+
     private void displayUserData(UserDTO user) {
         tvUserName.setText(user.getUserName());
         tvUserRole.setText(user.getUserRol());
 
         String token = tokenManager.getToken();
 
+        // Cargar foto de perfil (código existente)
         if (user.getUserPhotoURL() != null && !user.getUserPhotoURL().isEmpty() && token != null) {
-            // Asegurarse de que la URL es absoluta
             String fullPhotoUrl = user.getUserPhotoURL();
             if (!fullPhotoUrl.startsWith("http")) {
                 if (fullPhotoUrl.startsWith("/")) {
-                    fullPhotoUrl = fullPhotoUrl.substring(1); // quitar la barra inicial
+                    fullPhotoUrl = fullPhotoUrl.substring(1);
                 }
                 fullPhotoUrl = ApiClient.getBaseUrl() + fullPhotoUrl;
             }
-
 
             GlideUrl glideUrl = new GlideUrl(
                     fullPhotoUrl,
@@ -197,12 +306,68 @@ public class ProfileFragment extends Fragment {
             ivProfilePicture.setImageResource(R.drawable.default_user);
         }
 
+        // Obtener detalles completos de monumentos visitados
         if (user.getMonuments() != null && !user.getMonuments().isEmpty()) {
-            String monumentsText = "Monumentos visitados:\n" +
-                    TextUtils.join("\n", user.getMonuments());
-            tvVisitedMonuments.setText(monumentsText);
+            progressBar.setVisibility(View.VISIBLE);
+            List<MonumentoDTO> monumentosVisitados = new ArrayList<>();
+            AtomicInteger counter = new AtomicInteger(0);
+
+            for (String monumentName : user.getMonuments()) {
+                apiService.buscarMonumento("Bearer " + token, monumentName).enqueue(new Callback<MonumentoDTO>() {
+                    @Override
+                    public void onResponse(Call<MonumentoDTO> call, Response<MonumentoDTO> response) {
+                        if (response.isSuccessful() && response.body() != null) {
+                            monumentosVisitados.add(response.body());
+                        }
+
+                        // Verificar si hemos terminado todas las solicitudes
+                        if (counter.incrementAndGet() == user.getMonuments().size()) {
+                            progressBar.setVisibility(View.GONE);
+                            updateMonumentsList(monumentosVisitados);
+                        }
+                    }
+
+                    @Override
+                    public void onFailure(Call<MonumentoDTO> call, Throwable t) {
+                        if (counter.incrementAndGet() == user.getMonuments().size()) {
+                            progressBar.setVisibility(View.GONE);
+                            updateMonumentsList(monumentosVisitados);
+                        }
+                        Log.e("ProfileFragment", "Error al buscar monumento: " + monumentName, t);
+                    }
+                });
+            }
         } else {
             tvVisitedMonuments.setText("No has visitado monumentos aún");
+            updateMedal(0);
+        }
+    }
+
+    private void updateMonumentsList(List<MonumentoDTO> monuments) {
+        if (monuments.isEmpty()) {
+            tvVisitedMonuments.setText("No se pudieron cargar los monumentos visitados");
+            return;
+        }
+
+        // Actualizar RecyclerView
+        monumentAdapter.updateData(monuments);
+
+        // Actualizar medalla según el conteo
+        updateMedal(monuments.size());
+    }
+
+    private void updateMedal(int count) {
+        ivMedal.setVisibility(View.GONE);
+
+        if (count >= 5 && count < 10) {
+            ivMedal.setVisibility(View.VISIBLE);
+            ivMedal.setImageResource(R.drawable.medalla_bronce);
+        } else if (count >= 10 && count < 15) {
+            ivMedal.setVisibility(View.VISIBLE);
+            ivMedal.setImageResource(R.drawable.medalla_plata);
+        } else if (count >= 15) {
+            ivMedal.setVisibility(View.VISIBLE);
+            ivMedal.setImageResource(R.drawable.medalla_oro);
         }
     }
 

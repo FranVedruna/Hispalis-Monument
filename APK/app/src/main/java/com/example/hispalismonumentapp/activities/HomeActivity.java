@@ -10,10 +10,13 @@ import androidx.fragment.app.Fragment;
 import com.example.hispalismonumentapp.R;
 import com.example.hispalismonumentapp.fragments.CommunityFragment;
 import com.example.hispalismonumentapp.fragments.HomeFragment;
-import com.example.hispalismonumentapp.fragments.MonumentsFragment;
 import com.example.hispalismonumentapp.fragments.ProfileFragment;
 import com.example.hispalismonumentapp.network.TokenManager;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
+
+import android.app.AlertDialog;
+import android.content.DialogInterface;
+import android.content.SharedPreferences;
 
 public class HomeActivity extends AppCompatActivity {
 
@@ -24,27 +27,21 @@ public class HomeActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_home);
-
-        // Inicialización del TokenManager
         tokenManager = new TokenManager(this);
-
-        // Verificar autenticación
         if (!checkAuth()) {
             return;
         }
-
-        // Inicializar vistas
         initializeViews();
-
-        // Configurar navegación
         setupNavigation();
-
-        // Cargar fragment inicial
         loadInitialFragment();
+        checkAndShowIntroDialogs();
     }
 
     /**
-     * Verifica si el usuario está autenticado
+     * Verifica si hay un token válido para acceder a la aplicación.
+     * Si no lo hay, muestra un mensaje y redirige a la pantalla de login.
+     *
+     * @return true si el usuario está autenticado, false si no.
      */
     private boolean checkAuth() {
         String token = tokenManager.getToken();
@@ -57,15 +54,13 @@ public class HomeActivity extends AppCompatActivity {
         return true;
     }
 
-    /**
-     * Inicializa las vistas principales
-     */
+
     private void initializeViews() {
         bottomNavigation = findViewById(R.id.bottom_navigation);
     }
 
     /**
-     * Configura la navegación y los listeners
+     * Configura la navegación inferior con sus respectivos fragmentos según la opción seleccionada.
      */
     private void setupNavigation() {
         bottomNavigation.setOnItemSelectedListener(item -> {
@@ -74,8 +69,6 @@ public class HomeActivity extends AppCompatActivity {
 
             if (itemId == R.id.nav_home) {
                 selectedFragment = new HomeFragment();
-            } else if (itemId == R.id.nav_monuments) {
-                selectedFragment = new MonumentsFragment();
             } else if (itemId == R.id.nav_community) {
                 selectedFragment = new CommunityFragment();
             } else if (itemId == R.id.nav_profile) {
@@ -91,8 +84,9 @@ public class HomeActivity extends AppCompatActivity {
         });
     }
 
+
     /**
-     * Carga el fragment inicial (HomeFragment)
+     * Carga el fragmento inicial (por defecto HomeFragment) solo si no hay uno ya cargado.
      */
     private void loadInitialFragment() {
         if (getSupportFragmentManager().findFragmentById(R.id.fragment_container) == null) {
@@ -100,6 +94,53 @@ public class HomeActivity extends AppCompatActivity {
                     .replace(R.id.fragment_container, new HomeFragment())
                     .commit();
         }
+    }
+
+
+    /**
+     * Muestra tres ventanas de diálogo informativas la primera vez que se abre la aplicación.
+     */
+    private void checkAndShowIntroDialogs() {
+        SharedPreferences prefs = getSharedPreferences("app_prefs", MODE_PRIVATE);
+        boolean isFirstRun = prefs.getBoolean("first_run", true);
+
+        if (isFirstRun) {
+            showDialog1(() -> {
+                showDialog2(() -> {
+                    showDialog3(() -> {
+                        // Final: guardar que ya se mostraron los diálogos
+                        prefs.edit().putBoolean("first_run", false).apply();
+                    });
+                });
+            });
+        }
+    }
+
+    private void showDialog1(Runnable onNext) {
+        new AlertDialog.Builder(this)
+                .setTitle(getString(R.string.dialog1_title))
+                .setMessage(getString(R.string.dialog1_message))
+                .setPositiveButton(getString(R.string.next), (dialog, which) -> onNext.run())
+                .setCancelable(false)
+                .show();
+    }
+
+    private void showDialog2(Runnable onNext) {
+        new AlertDialog.Builder(this)
+                .setTitle(getString(R.string.dialog2_title))
+                .setMessage(getString(R.string.dialog2_message))
+                .setPositiveButton(getString(R.string.next), (dialog, which) -> onNext.run())
+                .setCancelable(false)
+                .show();
+    }
+
+    private void showDialog3(Runnable onNext) {
+        new AlertDialog.Builder(this)
+                .setTitle(getString(R.string.dialog3_title))
+                .setMessage(getString(R.string.dialog3_message))
+                .setPositiveButton(getString(R.string.done), (dialog, which) -> onNext.run())
+                .setCancelable(false)
+                .show();
     }
 
     @Override

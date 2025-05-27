@@ -74,7 +74,7 @@ public class RegisterActivity extends AppCompatActivity {
                         String errorBody = response.errorBody() != null ?
                                 response.errorBody().string() : "Error desconocido";
                         Toast.makeText(RegisterActivity.this,
-                                "Error: " + errorBody, Toast.LENGTH_LONG).show();
+                                "Usuario o correo electrónico ya registrados: " + errorBody, Toast.LENGTH_LONG).show();
                     } catch (IOException e) {
                         e.printStackTrace();
                     }

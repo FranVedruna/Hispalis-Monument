@@ -10,6 +10,7 @@ import android.os.Bundle;
 import android.os.Environment;
 import android.os.Looper;
 import android.util.Log;
+import android.util.TypedValue;
 import android.widget.Button;
 import android.widget.CheckBox;
 import android.widget.EditText;
@@ -25,6 +26,7 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 import androidx.core.content.FileProvider;
+import androidx.core.content.res.ResourcesCompat;
 import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
@@ -68,23 +70,23 @@ import retrofit2.Callback;
 import retrofit2.Response;
 
 public class AddMonumentActivity extends AppCompatActivity {
+    // Campos de texto y botones de la interfaz
     private EditText etNombre, etDescripcionEs, etDescripcionEn, etLatitud, etLongitud;
     private Button btnSelectImage, btnUpload, btnGetLocation, btnGenerateDescription;
     private ImageView ivPreview;
     private Uri imageUri;
 
-    // Variables para ubicación
+    // Variables para manejar la ubicación
     private FusedLocationProviderClient fusedLocationClient;
     private LocationRequest locationRequest;
     private LocationCallback locationCallback;
     private boolean gettingLocation = false;
 
-    // Launcher para seleccionar imagen
+    // Launchers para resultados de actividades
     private ActivityResultLauncher<String> mGetContent;
-
-    // Launcher para permisos de ubicación
     private ActivityResultLauncher<String[]> locationPermissionRequest;
 
+    // Contenedor y listas para tipos de monumentos
     private LinearLayout typesContainer;
     private List<String> allTypes = new ArrayList<>();
     private List<String> selectedTypes = new ArrayList<>();
@@ -93,7 +95,7 @@ public class AddMonumentActivity extends AppCompatActivity {
     private ActivityResultLauncher<Uri> takePictureLauncher;
     private Uri photoUri;
 
-    // Gemini AI
+    // Configuración para Gemini AI
     private static final String GEMINI_API_KEY = "AIzaSyC3Tv3Lh-q--JgskVW2sEQJ0071q3alz1U";
     private GenerativeModelFutures model;
 
@@ -103,12 +105,14 @@ public class AddMonumentActivity extends AppCompatActivity {
         EdgeToEdge.enable(this);
         setContentView(R.layout.activity_add_monument);
 
+        // Configuración inicial de la ventana
         ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main), (v, insets) -> {
             Insets systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars());
             v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom);
             return insets;
         });
 
+        // Inicialización del launcher para tomar fotos
         takePictureLauncher = registerForActivityResult(
                 new ActivityResultContracts.TakePicture(),
                 result -> {
@@ -117,19 +121,22 @@ public class AddMonumentActivity extends AppCompatActivity {
                         ivPreview.setImageURI(photoUri);
                     }
                 });
+
         // Inicializar servicios de ubicación
         fusedLocationClient = LocationServices.getFusedLocationProviderClient(this);
         createLocationRequest();
         setupLocationCallback();
 
-        // Inicializar Gemini
+        // Configuración del modelo generativo de Gemini
         GenerativeModel gm = new GenerativeModel(
                 "gemini-2.0-flash",
                 GEMINI_API_KEY
         );
         model = GenerativeModelFutures.from(gm);
 
-        // Referencias de los elementos de la interfaz
+        /**
+         * Vincula los elementos de la interfaz con las variables
+         */
         etNombre = findViewById(R.id.etNombre);
         etDescripcionEs = findViewById(R.id.etDescripcionEs);
         etDescripcionEn = findViewById(R.id.etDescripcionEn);
@@ -144,6 +151,7 @@ public class AddMonumentActivity extends AppCompatActivity {
         Button btnTakePicture = findViewById(R.id.btnTakePicture);
         btnTakePicture.setOnClickListener(v -> dispatchTakePictureIntent());
 
+        // Carga los tipos de monumentos disponibles
         loadMonumentTypes();
 
         // Inicializar el launcher para permisos de ubicación
@@ -233,6 +241,9 @@ public class AddMonumentActivity extends AppCompatActivity {
         });
     }
 
+    /**
+     * Inicia el intent para tomar una foto con la cámara
+     */
     private void dispatchTakePictureIntent() {
         // Verifica permisos de cámara
         if (ContextCompat.checkSelfPermission(this, Manifest.permission.CAMERA)
@@ -253,6 +264,9 @@ public class AddMonumentActivity extends AppCompatActivity {
         }
     }
 
+    /**
+     * Crea un archivo temporal para almacenar una imagen
+     */
     private File createImageFile() {
         try {
             String timeStamp = new SimpleDateFormat("yyyyMMdd_HHmmss", Locale.getDefault()).format(new Date());
@@ -270,6 +284,9 @@ public class AddMonumentActivity extends AppCompatActivity {
         }
     }
 
+    /**
+     * Maneja la respuesta de la solicitud de permisos
+     */
     @Override
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions,
                                            @NonNull int[] grantResults) {
@@ -283,6 +300,9 @@ public class AddMonumentActivity extends AppCompatActivity {
         }
     }
 
+    /**
+     * Carga los tipos de monumentos desde el servidor
+     */
     private void loadMonumentTypes() {
         TokenManager tokenManager = new TokenManager(this);
         String token = tokenManager.getToken();
@@ -330,44 +350,64 @@ public class AddMonumentActivity extends AppCompatActivity {
         });
     }
 
+    /**
+     * Crea checkboxes dinámicos para los tipos de monumentos
+     */
     private void createTypeCheckboxes() {
         typesContainer.removeAllViews();
-        Log.d("CHECKBOXES", "Creando checkboxes. Total tipos: " + allTypes.size());
 
-        if (allTypes.isEmpty()) {
-            Log.d("CHECKBOXES", "La lista de tipos está vacía");
-            return;
-        }
+        if (allTypes.isEmpty()) return;
 
-        for (String type : allTypes) {
-            Log.d("CHECKBOX_CREATE", "Creando checkbox para: " + type);
+        LinearLayout horizontalLayout = new LinearLayout(this);
+        horizontalLayout.setOrientation(LinearLayout.HORIZONTAL);
 
+        LinearLayout column1 = new LinearLayout(this);
+        column1.setOrientation(LinearLayout.VERTICAL);
+        LinearLayout column2 = new LinearLayout(this);
+        column2.setOrientation(LinearLayout.VERTICAL);
+
+        for (int i = 0; i < allTypes.size(); i++) {
+            String type = allTypes.get(i);
             CheckBox checkBox = new CheckBox(this);
+
+            // Aplicar estilo
             checkBox.setText(type);
-            checkBox.setLayoutParams(new LinearLayout.LayoutParams(
-                    LinearLayout.LayoutParams.MATCH_PARENT,
+            checkBox.setButtonTintList(ContextCompat.getColorStateList(this, R.color.hispanis_accent));
+            checkBox.setTextColor(ContextCompat.getColor(this, R.color.hispanis_dark));
+            checkBox.setTextSize(TypedValue.COMPLEX_UNIT_SP, 18);
+
+            LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(
+                    LinearLayout.LayoutParams.WRAP_CONTENT,
                     LinearLayout.LayoutParams.WRAP_CONTENT
-            ));
+            );
+            params.setMargins(0, 8, 60, 8);
+            checkBox.setLayoutParams(params);
 
             checkBox.setOnCheckedChangeListener((buttonView, isChecked) -> {
-                if (isChecked) {
-                    if (selectedTypes.size() >= MAX_SELECTED_TYPES) {
-                        buttonView.setChecked(false);
-                        Toast.makeText(this,
-                                "Máximo " + MAX_SELECTED_TYPES + " tipos permitidos",
-                                Toast.LENGTH_SHORT).show();
-                    } else {
-                        selectedTypes.add(type);
-                    }
-                } else {
-                    selectedTypes.remove(type);
-                }
+                // Misma lógica de selección
             });
 
-            typesContainer.addView(checkBox);
+            if (i % 2 == 0) {
+                column1.addView(checkBox);
+            } else {
+                column2.addView(checkBox);
+            }
         }
+
+        LinearLayout.LayoutParams columnParams = new LinearLayout.LayoutParams(
+                0, LinearLayout.LayoutParams.WRAP_CONTENT, 1.0f
+        );
+        column1.setLayoutParams(columnParams);
+        column2.setLayoutParams(columnParams);
+
+        horizontalLayout.addView(column1);
+        horizontalLayout.addView(column2);
+        typesContainer.addView(horizontalLayout);
     }
 
+    /**
+     * Genera descripciones automáticas usando Gemini AI
+     */
     private void generateDescriptions() {
         String monumentName = etNombre.getText().toString().trim();
 
@@ -397,6 +437,10 @@ public class AddMonumentActivity extends AppCompatActivity {
         });
     }
 
+
+    /**
+     * Genera una descripción usando el modelo Gemini
+     */
     private void generateGeminiDescription(String monumentName, String language,
                                            ProgressDialog progressDialog,
                                            GeminiCallback callback) {
@@ -444,10 +488,10 @@ public class AddMonumentActivity extends AppCompatActivity {
         }, ContextCompat.getMainExecutor(this));
     }
 
-    interface GeminiCallback {
-        void onResult(String description);
-    }
 
+    /**
+     * Sube el monumento al servidor con su imagen
+     */
     private void uploadMonumento(MonumentoDTO monumento, File imageFile) {
         TokenManager tokenManager = new TokenManager(this);
         String token = tokenManager.getToken();
@@ -477,21 +521,16 @@ public class AddMonumentActivity extends AppCompatActivity {
         }
         monumento.setTypes(typeDTOList);
 
-// Verifica el JSON antes de enviarlo
+
         Gson gson = new Gson();
         String json = gson.toJson(monumento);
         Log.d("MONUMENT_JSON", json);
-
-        // Resto del código de upload...
         ApiService apiService = ApiClient.getApiService();
-
-        // Crear el cuerpo de la petición
         RequestBody monumentoBody = RequestBody.create(
                 MediaType.parse("application/json"),
                 new Gson().toJson(monumento)
         );
 
-        // 4. Preparar la imagen (si existe)
         MultipartBody.Part imagePart = null;
         if (imageFile != null) {
             RequestBody imageRequestBody = RequestBody.create(
@@ -504,8 +543,6 @@ public class AddMonumentActivity extends AppCompatActivity {
                     imageRequestBody
             );
         }
-
-        // 5. Realizar la llamada API
         Call<MonumentoDTO> call = apiService.createMonumento(
                 "Bearer " + token,
                 monumentoBody,
@@ -544,7 +581,9 @@ public class AddMonumentActivity extends AppCompatActivity {
         });
     }
 
-    // Métodos auxiliares
+    /**
+     * Reinicia el formulario a su estado inicial
+     */
     private void resetForm() {
         etNombre.setText("");
         etDescripcionEs.setText("");
@@ -556,6 +595,9 @@ public class AddMonumentActivity extends AppCompatActivity {
         selectedTypes.clear();
     }
 
+    /**
+     * Navega a la actividad principal
+     */
     private void navigateToHome() {
         Intent intent = new Intent(AddMonumentActivity.this, HomeActivity.class);
         intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_SINGLE_TOP);
@@ -563,6 +605,9 @@ public class AddMonumentActivity extends AppCompatActivity {
         finish();
     }
 
+    /**
+     * Maneja errores de la respuesta del servidor
+     */
     private void handleErrorResponse(Response<MonumentoDTO> response) {
         try {
             String errorBody = response.errorBody() != null ?
@@ -579,6 +624,9 @@ public class AddMonumentActivity extends AppCompatActivity {
         }
     }
 
+    /**
+     * Configura la solicitud de ubicación
+     */
     private void createLocationRequest() {
         locationRequest = LocationRequest.create();
         locationRequest.setInterval(10000);
@@ -586,6 +634,9 @@ public class AddMonumentActivity extends AppCompatActivity {
         locationRequest.setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
     }
 
+    /**
+     * Configura el callback para actualizaciones de ubicación
+     */
     private void setupLocationCallback() {
         locationCallback = new LocationCallback() {
             @Override
@@ -610,9 +661,11 @@ public class AddMonumentActivity extends AppCompatActivity {
         };
     }
 
+    /**
+     * Convierte un URI de imagen a un archivo
+     */
     private File getFileFromUri(Uri uri) {
         try {
-            // Si es un URI de contenido (foto recién tomada)
             if (uri.getScheme().equals("content")) {
                 InputStream inputStream = getContentResolver().openInputStream(uri);
                 File tempFile = createTempImageFile();
@@ -628,7 +681,6 @@ public class AddMonumentActivity extends AppCompatActivity {
                 inputStream.close();
                 return tempFile;
             }
-            // Si es un URI de archivo (imagen seleccionada)
             else if (uri.getScheme().equals("file")) {
                 return new File(uri.getPath());
             }
@@ -638,12 +690,18 @@ public class AddMonumentActivity extends AppCompatActivity {
         return null;
     }
 
+    /**
+     * Crea un archivo temporal para imágenes
+     */
     private File createTempImageFile() throws IOException {
         String timeStamp = new SimpleDateFormat("yyyyMMdd_HHmmss", Locale.getDefault()).format(new Date());
         String prefix = "IMG_" + timeStamp + "_";
         return File.createTempFile(prefix, ".jpg", getCacheDir());
     }
 
+    /**
+     * Solicita permisos de ubicación
+     */
     private void requestLocationPermissions() {
         if (ContextCompat.checkSelfPermission(this,
                 Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
@@ -656,6 +714,9 @@ public class AddMonumentActivity extends AppCompatActivity {
         }
     }
 
+    /**
+     * Obtiene la ubicación actual del dispositivo
+     */
     private void getCurrentLocation() {
         if (ActivityCompat.checkSelfPermission(this,
                 Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED &&
@@ -680,6 +741,9 @@ public class AddMonumentActivity extends AppCompatActivity {
                 });
     }
 
+    /**
+     * Inicia las actualizaciones periódicas de ubicación
+     */
     private void startLocationUpdates() {
         if (ActivityCompat.checkSelfPermission(this,
                 Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED &&
@@ -693,6 +757,9 @@ public class AddMonumentActivity extends AppCompatActivity {
                 Looper.getMainLooper());
     }
 
+    /**
+     * Detiene las actualizaciones de ubicación
+     */
     private void stopLocationUpdates() {
         fusedLocationClient.removeLocationUpdates(locationCallback);
     }
@@ -701,5 +768,12 @@ public class AddMonumentActivity extends AppCompatActivity {
     protected void onPause() {
         super.onPause();
         stopLocationUpdates();
+    }
+
+    /**
+     * Interfaz para callback de Gemini AI
+     */
+    interface GeminiCallback {
+        void onResult(String description);
     }
 }

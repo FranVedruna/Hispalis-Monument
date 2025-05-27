@@ -1,6 +1,7 @@
 package com.example.hispalismonumentapp.activities;
 
 import android.Manifest;
+import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.graphics.Color;
 import android.location.Location;
@@ -82,6 +83,10 @@ public class NavigationActivity extends FragmentActivity implements OnMapReadyCa
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_navigation);
 
+        if (savedInstanceState != null) {
+            currentMonumentIndex = savedInstanceState.getInt("currentMonumentIndex", 0);
+        }
+
         // Inicializar vistas del monumento actual
         imageViewCurrentMonument = findViewById(R.id.imageViewCurrentMonument);
         textViewCurrentName = findViewById(R.id.textViewCurrentName);
@@ -98,6 +103,7 @@ public class NavigationActivity extends FragmentActivity implements OnMapReadyCa
         }
     }
 
+    // Recupera y valida el token de autenticación del usuario
     private void initializeToken() {
         TokenManager tokenManager = new TokenManager(this);
         authToken = tokenManager.getToken();
@@ -107,16 +113,21 @@ public class NavigationActivity extends FragmentActivity implements OnMapReadyCa
         }
     }
 
+    // Obtiene la lista de monumentos desde el intent y elimina el primer elemento (ubicación inicial)
     private void initializeMonumentList() {
         monumentList = getIntent().getParcelableArrayListExtra("selected_monuments");
+        boolean isOptimized = getIntent().getBooleanExtra("is_optimized", false);
         if (monumentList == null || monumentList.size() < 2) {
             Toast.makeText(this, "Se requieren al menos dos monumentos", Toast.LENGTH_SHORT).show();
             finish();
             return;
         }
-        monumentList.remove(0); // Remove user's initial location
+        if (isOptimized) {
+            monumentList.remove(0); // Remove user's initial location only if optimized
+        }
     }
 
+    // Configura el fragmento del mapa y solicita el mapa asincrónicamente
     private void initializeMap() {
         SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager()
                 .findFragmentById(R.id.map);
@@ -125,11 +136,13 @@ public class NavigationActivity extends FragmentActivity implements OnMapReadyCa
         }
     }
 
+    // Inicializa el cliente de ubicación y crea la configuración de actualización de ubicación
     private void initializeLocationClient() {
         fusedLocationClient = LocationServices.getFusedLocationProviderClient(this);
         createLocationRequest();
     }
 
+    // Configura el objeto LocationRequest con alta precisión y tiempos de actualización
     private void createLocationRequest() {
         locationRequest = new LocationRequest.Builder(Priority.PRIORITY_HIGH_ACCURACY, 5000)
                 .setMinUpdateIntervalMillis(3000)
@@ -137,6 +150,7 @@ public class NavigationActivity extends FragmentActivity implements OnMapReadyCa
     }
 
 
+    // Callback que se ejecuta cuando el mapa está listo para ser usado
     @Override
     public void onMapReady(@NonNull GoogleMap googleMap) {
         mMap = googleMap;
@@ -161,8 +175,6 @@ public class NavigationActivity extends FragmentActivity implements OnMapReadyCa
 
             updateUserLocation(manualLocation);
             updateRouteIfNeeded(manualLocation);
-
-            // ✅ NUEVO: forzar verificación de cercanía
             checkProximityToMonument(manualLocation);
 
             Toast.makeText(this, "Ubicación manual establecida", Toast.LENGTH_SHORT).show();
@@ -170,6 +182,7 @@ public class NavigationActivity extends FragmentActivity implements OnMapReadyCa
 
     }
 
+    // Muestra la imagen, nombre y descripción del monumento actual
     private void updateCurrentMonumentDisplay(MonumentoDTO monument) {
         textViewCurrentName.setText(monument.getNombre());
         textViewCurrentDescription.setText(monument.getDescripcionEs());
@@ -191,8 +204,8 @@ public class NavigationActivity extends FragmentActivity implements OnMapReadyCa
         }
     }
 
+    // Habilita las opciones de UI del mapa y lo centra en el primer monumento
     private void setupMapFeatures() {
-        mMap.setMyLocationEnabled(true);
         mMap.getUiSettings().setMyLocationButtonEnabled(true);
         mMap.getUiSettings().setZoomControlsEnabled(true);
         mMap.getUiSettings().setCompassEnabled(true);
@@ -206,6 +219,8 @@ public class NavigationActivity extends FragmentActivity implements OnMapReadyCa
         }
     }
 
+
+    // Maneja el resultado de la solicitud de permisos de ubicación
     @Override
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
@@ -223,6 +238,8 @@ public class NavigationActivity extends FragmentActivity implements OnMapReadyCa
         }
     }
 
+
+    // Agrega marcadores de todos los monumentos en el mapa y muestra la posición del usuario
     private void addAllMonumentMarkers() {
         mMap.clear();
 
@@ -253,6 +270,7 @@ public class NavigationActivity extends FragmentActivity implements OnMapReadyCa
         }
     }
 
+    // Callback que se dispara cuando se recibe una nueva ubicación del dispositivo
     private final LocationCallback locationCallback = new LocationCallback() {
         @Override
         public void onLocationResult(@NonNull LocationResult locationResult) {
@@ -267,13 +285,8 @@ public class NavigationActivity extends FragmentActivity implements OnMapReadyCa
         }
     };
 
-    private void resetToAutomaticLocation() {
-        isManualLocation = false;
-        manualLocation = null;
-        Toast.makeText(this, "Seguimiento automático reactivado", Toast.LENGTH_SHORT).show();
-    }
 
-
+    // Actualiza o crea el marcador de la ubicación del usuario en el mapa
     private void updateUserLocation(Location location) {
         LatLng userPosition = new LatLng(location.getLatitude(), location.getLongitude());
 
@@ -287,10 +300,13 @@ public class NavigationActivity extends FragmentActivity implements OnMapReadyCa
         }
 
         if (lastLocation == null || location.distanceTo(lastLocation) > 5) {
-            mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(userPosition, DEFAULT_ZOOM_LEVEL));
+            float currentZoom = mMap.getCameraPosition().zoom;  // Obtener zoom actual
+            mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(userPosition, currentZoom));
         }
     }
 
+
+    // Si el usuario se ha movido significativamente, actualiza la ruta al próximo monumento
     private void updateRouteIfNeeded(Location location) {
         if (lastLocation == null || location.distanceTo(lastLocation) > MIN_DISTANCE_CHANGE_FOR_ROUTE_UPDATE) {
             lastLocation = location;
@@ -302,6 +318,7 @@ public class NavigationActivity extends FragmentActivity implements OnMapReadyCa
         }
     }
 
+    // Solicita a la API de Google Maps una ruta entre el usuario y el próximo monumento
     private void drawRoute(LatLng origin, LatLng destination) {
         if (routePolyline != null) {
             routePolyline.remove();
@@ -345,7 +362,7 @@ public class NavigationActivity extends FragmentActivity implements OnMapReadyCa
         });
     }
 
-
+    // Dibuja la ruta decodificada en el mapa con estilo visible y anima la cámara hacia ella
     private void drawRouteOnMap(List<LatLng> routePoints, LatLng origin) {
         try {
             Log.d("MAP_DEBUG", "Dibujando ruta con " + routePoints.size() + " puntos");
@@ -382,19 +399,8 @@ public class NavigationActivity extends FragmentActivity implements OnMapReadyCa
         }
     }
 
-    private void zoomToRoute(List<LatLng> routePoints, LatLng origin) {
-        LatLngBounds.Builder builder = new LatLngBounds.Builder();
-        builder.include(origin);
-        for (LatLng point : routePoints) {
-            builder.include(point);
-        }
-        try {
-            mMap.animateCamera(CameraUpdateFactory.newLatLngBounds(builder.build(), 150));
-        } catch (IllegalStateException e) {
-            mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(origin, DEFAULT_ZOOM_LEVEL));
-        }
-    }
 
+    // Dibuja una línea recta en caso de fallo con la ruta de Google Maps
     private void drawStraightLine(LatLng origin, LatLng destination) {
         routePolyline = mMap.addPolyline(new PolylineOptions()
                 .add(origin, destination)
@@ -403,6 +409,7 @@ public class NavigationActivity extends FragmentActivity implements OnMapReadyCa
                 .pattern(Arrays.asList(new Dot(), new Gap(10f))));
     }
 
+    // Verifica si el usuario está cerca del monumento actual y avanza al siguiente si es así
     private void checkProximityToMonument(Location userLocation) {
         if (currentMonumentIndex >= monumentList.size()) return;
 
@@ -423,10 +430,15 @@ public class NavigationActivity extends FragmentActivity implements OnMapReadyCa
             } else {
                 Toast.makeText(this, "¡Ruta completada!", Toast.LENGTH_LONG).show();
                 fusedLocationClient.removeLocationUpdates(locationCallback);
+                Intent intent = new Intent(this, HomeActivity.class);
+                startActivity(intent);
+                finish();
             }
         }
     }
 
+
+    // Llama a la API para marcar un monumento como visitado
     private void markMonumentAsVisited(MonumentoDTO monument) {
         ApiService apiService = ApiClient.getApiService();
         apiService.marcarVisitado("Bearer " + authToken, monument.getNombre()).enqueue(new Callback<Void>() {
@@ -446,6 +458,8 @@ public class NavigationActivity extends FragmentActivity implements OnMapReadyCa
         });
     }
 
+
+    // Inicia actualizaciones periódicas de ubicación del dispositivo
     private void startLocationUpdates() {
         if (ActivityCompat.checkSelfPermission(this,
                 Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
@@ -459,6 +473,8 @@ public class NavigationActivity extends FragmentActivity implements OnMapReadyCa
         fusedLocationClient.removeLocationUpdates(locationCallback);
     }
 
+
+    // Decodifica la polilínea codificada recibida de la API de direcciones de Google Maps
     private List<LatLng> decodePolyline(String encoded) {
         List<LatLng> poly = new ArrayList<>();
         if (encoded == null || encoded.isEmpty()) {
@@ -498,5 +514,11 @@ public class NavigationActivity extends FragmentActivity implements OnMapReadyCa
             Log.e("NavigationActivity", "Error decodificando polilínea: " + e.getMessage());
         }
         return poly;
+    }
+
+    @Override
+    protected void onSaveInstanceState(@NonNull Bundle outState) {
+        super.onSaveInstanceState(outState);
+        outState.putInt("currentMonumentIndex", currentMonumentIndex);
     }
 }

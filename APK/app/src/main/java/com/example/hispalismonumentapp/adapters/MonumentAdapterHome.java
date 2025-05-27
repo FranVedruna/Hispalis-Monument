@@ -8,6 +8,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
+import android.widget.LinearLayout;
 import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
@@ -28,6 +29,7 @@ public class MonumentAdapterHome extends RecyclerView.Adapter<MonumentAdapterHom
     private List<MonumentoDTO> selectedMonuments = new ArrayList<>();
     private OnLongItemClickListener onLongItemClickListener;
 
+
     public interface OnLongItemClickListener {
         void onLongItemClick(View view, int position);
     }
@@ -36,6 +38,8 @@ public class MonumentAdapterHome extends RecyclerView.Adapter<MonumentAdapterHom
         this.context = context;
         this.monuments = monuments != null ? monuments : new ArrayList<>();
         this.authToken = authToken;
+
+
     }
 
     public void setOnLongItemClickListener(OnLongItemClickListener listener) {
@@ -63,10 +67,11 @@ public class MonumentAdapterHome extends RecyclerView.Adapter<MonumentAdapterHom
         MonumentoDTO monument = monuments.get(position);
 
         if (selectedMonuments.contains(monument)) {
-            holder.itemView.setBackgroundColor(Color.parseColor("#E8F5E9")); // Verde claro
+            holder.container.setBackgroundResource(R.drawable.item_background_selected);
         } else {
-            holder.itemView.setBackgroundColor(Color.TRANSPARENT);
+            holder.container.setBackgroundResource(R.drawable.item_background_default);
         }
+
 
         holder.textViewName.setText(monument.getNombre());
         holder.textViewDescription.setText(monument.getDescripcionEs());
@@ -90,9 +95,11 @@ public class MonumentAdapterHome extends RecyclerView.Adapter<MonumentAdapterHom
 
         holder.itemView.setOnClickListener(v -> {
             Intent intent = new Intent(context, MonumentActivity.class);
-            intent.putExtra("monument_id", monument.getId());
+            intent.putExtra("monument_name", monument.getNombre());
             context.startActivity(intent);
         });
+
+
 
         holder.itemView.setOnLongClickListener(v -> {
             if (onLongItemClickListener != null) {
@@ -100,15 +107,18 @@ public class MonumentAdapterHome extends RecyclerView.Adapter<MonumentAdapterHom
 
                 if (selectedMonuments.contains(monument)) {
                     selectedMonuments.remove(monument);
-                    holder.itemView.setBackgroundColor(Color.TRANSPARENT);
                 } else {
                     selectedMonuments.add(monument);
-                    holder.itemView.setBackgroundColor(Color.parseColor("#E8F5E9"));
                 }
+
+                // Esto es suficiente: se volverá a pintar con el fondo correcto en onBindViewHolder
+                notifyItemChanged(position);
+
                 return true;
             }
             return false;
         });
+
     }
 
     @Override
@@ -125,12 +135,15 @@ public class MonumentAdapterHome extends RecyclerView.Adapter<MonumentAdapterHom
         ImageView imageView;
         TextView textViewName;
         TextView textViewDescription;
+        LinearLayout container;
 
         public MonumentViewHolder(@NonNull View itemView) {
             super(itemView);
+            container = itemView.findViewById(R.id.container);
             imageView = itemView.findViewById(R.id.imageViewMonument);
             textViewName = itemView.findViewById(R.id.textViewName);
             textViewDescription = itemView.findViewById(R.id.textViewDescription);
+
         }
     }
     public interface OnSelectionChangedListener {

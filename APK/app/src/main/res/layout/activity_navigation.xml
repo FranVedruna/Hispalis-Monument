@@ -5,6 +5,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
+    android:background="@color/hispanis_light"
     tools:context=".activities.NavigationActivity">
 
     <!-- Mapa de Google ocupando la parte superior -->
@@ -27,7 +28,9 @@
         <RelativeLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:padding="12dp">
+            android:padding="12dp"
+            android:background="@drawable/item_background_current_monument">
+
 
             <ImageView
                 android:id="@+id/imageViewCurrentMonument"
@@ -42,16 +45,21 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_toEndOf="@id/imageViewCurrentMonument"
-                android:layout_toRightOf="@id/imageViewCurrentMonument"
                 android:layout_marginStart="12dp"
-                android:orientation="vertical">
+                android:orientation="vertical"
+                android:gravity="center"
+                android:layout_centerVertical="true"
+                android:layout_gravity="center_vertical"
+                android:paddingEnd="8dp">
 
                 <TextView
                     android:id="@+id/textViewCurrentName"
+                    style="@style/PlayfairTextStyle"
+                    android:textColor="@color/hispanis_light"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:textAppearance="@style/TextAppearance.AppCompat.Title"
-                    android:textColor="@android:color/black" />
+                    android:gravity="center"
+                    android:textAlignment="center" />
 
                 <TextView
                     android:id="@+id/textViewCurrentDescription"
@@ -59,6 +67,7 @@
                     android:layout_height="wrap_content"
                     android:layout_marginTop="4dp"
                     android:maxLines="3"
+                    android:visibility="gone"
                     android:ellipsize="end"
                     android:textAppearance="@style/TextAppearance.AppCompat.Body1"
                     android:textColor="@android:color/black" />

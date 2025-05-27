@@ -1,18 +1,17 @@
-<?xml version="1.0" encoding="utf-8"?>
 <menu xmlns:android="http://schemas.android.com/apk/res/android">
-    <item
-        android:id="@+id/nav_home"
-        android:title="Home" />
 
     <item
-        android:id="@+id/nav_monuments"
-        android:title="Monuments" />
+        android:id="@+id/nav_home"
+        android:icon="@drawable/home"
+        android:title="@string/nav_memu_home" />
 
     <item
         android:id="@+id/nav_community"
-        android:title="Community" />
+        android:icon="@drawable/people"
+        android:title="@string/nav_menu_community" />
 
     <item
         android:id="@+id/nav_profile"
-        android:title="Profile" />
+        android:icon="@drawable/person"
+        android:title="@string/nav_menu_profile" />
 </menu>

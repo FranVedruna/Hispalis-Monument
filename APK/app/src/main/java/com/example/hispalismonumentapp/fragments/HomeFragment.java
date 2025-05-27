@@ -7,8 +7,11 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.inputmethod.EditorInfo;
 import android.widget.Button;
 import android.widget.CheckBox;
+import android.widget.EditText;
+import android.widget.ImageButton;
 import android.widget.LinearLayout;
 import android.widget.ProgressBar;
 import android.widget.TextView;
@@ -25,6 +28,7 @@ import com.example.hispalismonumentapp.activities.NavigationActivity;
 import com.example.hispalismonumentapp.adapters.MonumentAdapterHome;
 import com.example.hispalismonumentapp.models.MonumentoDTO;
 import com.example.hispalismonumentapp.models.MonumentoPageResponse;
+import com.example.hispalismonumentapp.models.UserDTO;
 import com.example.hispalismonumentapp.network.ApiClient;
 import com.example.hispalismonumentapp.network.ApiService;
 import com.example.hispalismonumentapp.network.DirectionsResponse;
@@ -52,15 +56,17 @@ public class HomeFragment extends Fragment {
     private ProgressBar progressBar;
     private TextView tvEmptyView, tvPageInfo, tvSelectedCount;
     private Button btnPrevious, btnNext, btnStartTrip;
-    private CheckBox cbOptimizedTrip;
     private LinearLayout selectionControlsLayout;
     private FusedLocationProviderClient fusedLocationClient;
-
+    private EditText etSearch;
+    private ImageButton btnSearch;
     private static final int REQUEST_LOCATION_PERMISSION = 1001;
+    private FloatingActionButton fabAddMonument;
     private static final int PAGE_SIZE = 10;
     private int currentPage = 0;
     private int totalPages = 1;
-    
+    CheckBox cbOptimizedTrip;
+
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
@@ -71,6 +77,16 @@ public class HomeFragment extends Fragment {
         setupTripControls();
         loadFirstItems();
         fusedLocationClient = LocationServices.getFusedLocationProviderClient(requireActivity());
+        btnSearch.setOnClickListener(v -> performSearch());
+        etSearch.setOnEditorActionListener((v, actionId, event) -> {
+            if (actionId == EditorInfo.IME_ACTION_SEARCH) {
+                performSearch();
+                return true;
+            }
+            return false;
+        });
+        checkUserRole();
+        setupFab();
         return view;
     }
 
@@ -82,10 +98,50 @@ public class HomeFragment extends Fragment {
         btnPrevious = view.findViewById(R.id.btnPrevious);
         btnNext = view.findViewById(R.id.btnNext);
         tokenManager = new TokenManager(requireActivity());
-        cbOptimizedTrip = view.findViewById(R.id.cbOptimizedTrip);
         btnStartTrip = view.findViewById(R.id.btnStartTrip);
         tvSelectedCount = view.findViewById(R.id.tvSelectedCount);
         selectionControlsLayout = view.findViewById(R.id.selectionControlsLayout);
+        etSearch = view.findViewById(R.id.etSearch);
+        btnSearch = view.findViewById(R.id.btnSearch);
+        fabAddMonument = view.findViewById(R.id.fabAddMonument);
+        fabAddMonument.setVisibility(View.GONE);
+        cbOptimizedTrip = view.findViewById(R.id.cbOptimizedTrip);
+    }
+
+    private void checkUserRole() {
+        String token = tokenManager.getToken();
+        if (token == null || token.isEmpty()) {
+            return;
+        }
+
+        ApiService apiService = ApiClient.getApiService();
+        Call<UserDTO> call = apiService.getCurrentUser("Bearer " + token);
+
+        call.enqueue(new Callback<UserDTO>() {
+            @Override
+            public void onResponse(Call<UserDTO> call, Response<UserDTO> response) {
+                if (response.isSuccessful() && response.body() != null) {
+                    UserDTO user = response.body();
+                    if ("ADMIN".equals(user.getUserRol())) {
+                        requireActivity().runOnUiThread(() -> {
+                            fabAddMonument.setVisibility(View.VISIBLE);
+                        });
+                    }
+                }
+            }
+
+            @Override
+            public void onFailure(Call<UserDTO> call, Throwable t) {
+                Log.e("MonumentsFragment", "Error al obtener información del usuario", t);
+            }
+        });
+    }
+
+    private void setupFab() {
+        fabAddMonument.setOnClickListener(v -> {
+            Intent intent = new Intent(requireActivity(), AddMonumentActivity.class);
+            startActivity(intent);
+        });
     }
 
     private void setupPaginationButtons() {
@@ -103,6 +159,71 @@ public class HomeFragment extends Fragment {
             }
         });
     }
+
+    private void performSearch() {
+        String searchQuery = etSearch.getText().toString().trim();
+
+        if (searchQuery.isEmpty()) {
+            // Si el campo de búsqueda está vacío, cargar la lista normal
+            loadFirstItems();
+        } else {
+            // Realizar búsqueda por nombre parcial
+            currentPage = 0;
+            showLoading(true);
+            searchMonumentsByPartialName(searchQuery, currentPage);
+        }
+    }
+
+    private void searchMonumentsByPartialName(String name, int page) {
+        String token = tokenManager.getToken();
+        if (token == null || token.isEmpty()) {
+            showError("Token no válido");
+            return;
+        }
+
+        ApiService apiService = ApiClient.getApiService();
+        Call<MonumentoPageResponse> call = apiService.searchMonumentsByPartialName(
+                "Bearer " + token,
+                name,
+                page,
+                PAGE_SIZE,
+                "nombre,asc"
+        );
+
+        call.enqueue(new Callback<MonumentoPageResponse>() {
+            @Override
+            public void onResponse(Call<MonumentoPageResponse> call, Response<MonumentoPageResponse> response) {
+                showLoading(false);
+
+                if (response.isSuccessful()) {
+                    MonumentoPageResponse pageResponse = response.body();
+                    if (pageResponse != null) {
+                        totalPages = pageResponse.getTotalPages();
+                        List<MonumentoDTO> monumentosDTO = pageResponse.getContent();
+
+                        if (monumentosDTO != null && !monumentosDTO.isEmpty()) {
+                            handleApiResponse(monumentosDTO);
+                        } else {
+                            showEmptyView(page == 0);
+                        }
+                    }
+                } else {
+                    handleApiError(response.code());
+                }
+            }
+
+            @Override
+            public void onFailure(Call<MonumentoPageResponse> call, Throwable t) {
+                showLoading(false);
+                if (!call.isCanceled()) {
+                    Log.e("NETWORK_ERROR", "Error de conexión", t);
+                    showError("Error de conexión: " + t.getMessage());
+                }
+            }
+        });
+    }
+
+
 
     private void setupTripControls() {
         btnStartTrip.setOnClickListener(v -> startOptimizedTrip());
@@ -133,7 +254,16 @@ public class HomeFragment extends Fragment {
             if (location != null) {
                 double userLat = location.getLatitude();
                 double userLng = location.getLongitude();
-                optimizeRouteFromUserPosition(userLat, userLng, selectedMonuments);
+
+                // Verificar si el checkbox está activado para optimizar
+                boolean shouldOptimize = cbOptimizedTrip.isChecked();
+
+                if (shouldOptimize) {
+                    optimizeRouteFromUserPosition(userLat, userLng, selectedMonuments);
+                } else {
+                    // Si no está activado, lanzar la navegación SIN optimizar
+                    launchNavigationActivity(selectedMonuments, false);
+                }
             } else {
                 Toast.makeText(requireContext(), "No se pudo obtener la ubicación", Toast.LENGTH_SHORT).show();
             }
@@ -225,132 +355,6 @@ public class HomeFragment extends Fragment {
                     }
                 });
     }
-
-
-
-    private void optimizeRouteWithGoogleDirections(List<MonumentoDTO> monuments) {
-        if (monuments.size() < 3) {
-            Toast.makeText(requireContext(), "Se necesitan al menos 3 monumentos para optimizar", Toast.LENGTH_SHORT).show();
-            return;
-        }
-
-        MonumentoDTO origin = monuments.get(0);
-        List<MonumentoDTO> remaining = new ArrayList<>(monuments.subList(1, monuments.size()));
-
-        Retrofit retrofit = new Retrofit.Builder()
-                .baseUrl("https://maps.googleapis.com/maps/api/")
-                .addConverterFactory(GsonConverterFactory.create())
-                .build();
-
-        GoogleDirectionsService service = retrofit.create(GoogleDirectionsService.class);
-        String apiKey = getString(R.string.google_maps_api_key);
-        showLoading(true);
-
-        List<RouteCandidate> candidates = new ArrayList<>();
-        AtomicInteger pendingRequests = new AtomicInteger(remaining.size()); // ✅ Aquí es donde debe ir
-
-        for (int i = 0; i < remaining.size(); i++) {
-            MonumentoDTO destination = remaining.get(i);
-            List<MonumentoDTO> waypointsList = new ArrayList<>(remaining);
-            waypointsList.remove(destination);
-
-            String originStr = origin.getLatitud() + "," + origin.getLongitud();
-            String destinationStr = destination.getLatitud() + "," + destination.getLongitud();
-            StringBuilder waypointsStr = new StringBuilder("optimize:true");
-
-            for (MonumentoDTO wp : waypointsList) {
-                waypointsStr.append("|").append(wp.getLatitud()).append(",").append(wp.getLongitud());
-            }
-
-            service.getOptimizedRoute(originStr, destinationStr, waypointsStr.toString(), apiKey)
-                    .enqueue(new Callback<DirectionsResponse>() {
-                        @Override
-                        public void onResponse(Call<DirectionsResponse> call, Response<DirectionsResponse> response) {
-                            if (response.isSuccessful() && response.body() != null && !response.body().routes.isEmpty()) {
-                                DirectionsResponse.Route route = response.body().routes.get(0);
-                                int totalDuration = 0;
-                                for (DirectionsResponse.Leg leg : route.legs) {
-                                    totalDuration += leg.duration.value;
-                                }
-
-                                List<Integer> order = route.waypoint_order;
-                                synchronized (candidates) {
-                                    candidates.add(new RouteCandidate(destination, order, totalDuration, waypointsList));
-                                }
-                            }
-
-                            if (pendingRequests.decrementAndGet() == 0) {
-                                processOptimizedResults(candidates, origin, monuments);
-                            }
-                        }
-
-                        @Override
-                        public void onFailure(Call<DirectionsResponse> call, Throwable t) {
-                            if (pendingRequests.decrementAndGet() == 0) {
-                                processOptimizedResults(candidates, origin, monuments);
-                            }
-                        }
-                    });
-        }
-    }
-
-    private void processOptimizedResults(List<RouteCandidate> candidates, MonumentoDTO origin, List<MonumentoDTO> fallback) {
-        requireActivity().runOnUiThread(() -> {
-            showLoading(false);
-            if (candidates.isEmpty()) {
-                Toast.makeText(requireContext(), "No se pudo optimizar la ruta", Toast.LENGTH_SHORT).show();
-                launchNavigationActivity(fallback, false);
-                return;
-            }
-
-            RouteCandidate best = candidates.stream()
-                    .min((a, b) -> Integer.compare(a.totalDuration, b.totalDuration))
-                    .orElse(null);
-
-            if (best != null) {
-                List<MonumentoDTO> finalRoute = new ArrayList<>();
-                finalRoute.add(origin);
-                for (int index : best.optimizedOrder) {
-                    finalRoute.add(best.waypoints.get(index));
-                }
-                finalRoute.add(best.destination);
-                launchNavigationActivity(finalRoute, true);
-            }
-        });
-    }
-
-
-    // Clase auxiliar interna
-    private static class RouteCandidate {
-        MonumentoDTO destination;
-        List<Integer> optimizedOrder;
-        int totalDuration;
-        List<MonumentoDTO> waypoints;
-
-        RouteCandidate(MonumentoDTO destination, List<Integer> optimizedOrder, int totalDuration, List<MonumentoDTO> waypoints) {
-            this.destination = destination;
-            this.optimizedOrder = optimizedOrder;
-            this.totalDuration = totalDuration;
-            this.waypoints = waypoints;
-        }
-    }
-    private List<MonumentoDTO> reorderMonuments(List<MonumentoDTO> originalList, List<Integer> optimizedOrder) {
-        List<MonumentoDTO> result = new ArrayList<>();
-
-        // Add first monument (origin)
-        result.add(originalList.get(0));
-
-        // Add waypoints in optimized order
-        for (int index : optimizedOrder) {
-            result.add(originalList.get(index + 1));
-        }
-
-        // Add last monument (destination)
-        result.add(originalList.get(originalList.size() - 1));
-
-        return result;
-    }
-
 
     private void launchNavigationActivity(List<MonumentoDTO> monuments, boolean isOptimized) {
         // Log para verificar los monumentos y el orden

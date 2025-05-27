@@ -18,11 +18,13 @@ import okhttp3.RequestBody;
 import okhttp3.ResponseBody;
 import retrofit2.Call;
 import retrofit2.http.Body;
+import retrofit2.http.DELETE;
 import retrofit2.http.GET;
 import retrofit2.http.Header;
 import retrofit2.http.Headers;
 import retrofit2.http.Multipart;
 import retrofit2.http.POST;
+import retrofit2.http.PUT;
 import retrofit2.http.Part;
 import retrofit2.http.Path;
 import retrofit2.http.Query;
@@ -63,6 +65,13 @@ public interface ApiService {
     @POST("api/monumentos/visitado/{nombre}")
     Call<Void> marcarVisitado(@Header("Authorization") String authHeader, @Path("nombre") String nombreMonumento);
 
+    @GET("api/monumentos/visitado/{nombre}")
+    Call<Boolean> hasUserVisitedMonument(
+            @Header("Authorization") String token,
+            @Path("nombre") String nombre
+    );
+
+
     // En tu ApiService.java
     @Multipart
     @POST("/api/users/me/photo")
@@ -78,8 +87,38 @@ public interface ApiService {
             @Query("size") int size
     );
 
+    @GET("api/monumentos/buscar/partial")
+    Call<MonumentoPageResponse> searchMonumentsByPartialName(
+            @Header("Authorization") String authHeader,
+            @Query("nombre") String nombre,
+            @Query("page") int page,
+            @Query("size") int size,
+            @Query("sort") String sort
+    );
+
     @GET("api/users/find")
     Call<UserDTO> findUserByName(@Header("Authorization") String authHeader, @Query("nombre") String nombre);
+
+    @PUT("api/users/upgrade")
+    Call<ResponseBody> upgradeUser(@Header("Authorization") String authHeader, @Query("username") String username);
+
+    @DELETE("api/users/me")
+    Call<ResponseBody> deleteUser(@Header("Authorization") String authHeader);
+
+    @DELETE("api/monumentos/eliminar")
+    Call<ResponseBody> deleteMonumentoByNombre(@Header("Authorization") String authHeader, @Query("nombre") String nombre);
+
+    @GET("api/users/visited/count")
+    Call<Integer> getVisitedMonumentCount(
+            @Header("Authorization") String authHeader,
+            @Query(value = "username", encoded = true) String username
+    );
+
+    @GET("/api/users/{username}/is-active")
+    Call<Boolean> isUserActive(@Header("Authorization") String token, @Path("username") String username);
+
+
+
 
 
 }

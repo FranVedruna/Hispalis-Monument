@@ -6,6 +6,7 @@ import androidx.appcompat.app.AppCompatActivity;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.ImageButton;
 import android.widget.Spinner;
 import android.widget.Toast;
 
@@ -27,6 +28,7 @@ public class LoginActivity extends AppCompatActivity {
     private Spinner serverSpinner;
     private SharedPreferences sharedPreferences;
 
+    // Establece el idioma seleccionado antes de que se cree la actividad
     @Override
     protected void attachBaseContext(Context newBase) {
         super.attachBaseContext(LocaleHelper.setLocale(newBase, LocaleHelper.getLanguage(newBase)));
@@ -37,24 +39,27 @@ public class LoginActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_login);
 
+        // Inicializa las preferencias compartidas
         sharedPreferences = getSharedPreferences("AppPrefs", MODE_PRIVATE);
 
+        // Asocia los elementos de la vista
         EditText usernameEditText = findViewById(R.id.userInput);
         EditText passwordEditText = findViewById(R.id.passwordInput);
         Button loginButton = findViewById(R.id.loginButton);
         Button registerButton = findViewById(R.id.registerButton);
-        Button buttonSpanish = findViewById(R.id.buttonSpanish);
-        Button buttonEnglish = findViewById(R.id.buttonEnglish);
+        ImageButton buttonSpanish = findViewById(R.id.buttonSpanish);
+        ImageButton buttonEnglish = findViewById(R.id.buttonEnglish);
         serverSpinner = findViewById(R.id.serverSpinner);
 
         // Configurar el Spinner
         setupServerSpinner();
 
+        //Cambio de idiomas
         buttonSpanish.setOnClickListener(v -> changeLanguage("es"));
         buttonEnglish.setOnClickListener(v -> changeLanguage("en"));
 
         loginButton.setOnClickListener(v -> {
-            String username = usernameEditText.getText().toString();
+            String username = usernameEditText.getText().toString().trim();
             String password = passwordEditText.getText().toString();
             login(username, password);
         });
@@ -65,6 +70,10 @@ public class LoginActivity extends AppCompatActivity {
         });
     }
 
+    /**
+     * Configura el spinner con opciones de servidores disponibles para conectarse.
+     * Guarda la selección del usuario para reutilizarla en el futuro.
+     */
     private void setupServerSpinner() {
         // Opciones para el Spinner
         String[] servers = {
@@ -86,6 +95,10 @@ public class LoginActivity extends AppCompatActivity {
         serverSpinner.setSelection(savedSelection);
     }
 
+    /**
+     * Obtiene la URL base según el servidor seleccionado en el spinner.
+     * Guarda esta selección en las preferencias compartidas.
+     */
     private String getSelectedServerUrl() {
         int position = serverSpinner.getSelectedItemPosition();
         // Guardar selección para futuras sesiones
@@ -103,6 +116,10 @@ public class LoginActivity extends AppCompatActivity {
         }
     }
 
+    /**
+     * Inicia sesión haciendo una petición al servidor seleccionado.
+     * Guarda el token si la respuesta es exitosa y redirige a la actividad principal.
+     */
     private void login(String username, String password) {
         String baseUrl = getSelectedServerUrl();
         ApiClient.setBaseUrl(baseUrl); // Actualizamos la URL base antes de hacer la llamada
@@ -134,6 +151,11 @@ public class LoginActivity extends AppCompatActivity {
         });
     }
 
+    /**
+     * Cambia el idioma de la aplicación y reinicia la actividad actual para aplicar el cambio.
+     *
+     * @param languageCode Código del idioma a usar (por ejemplo: "es", "en").
+     */
     private void changeLanguage(String languageCode) {
         LocaleHelper.setLocale(this, languageCode);
         Intent intent = getIntent();

@@ -2,4 +2,7 @@
 <resources>
     <color name="black">#FF000000</color>
     <color name="white">#FFFFFFFF</color>
+    <color name="hispanis_dark">#3E2723</color>  <!-- Marrón oscuro -->
+    <color name="hispanis_light">#D7CCC8</color> <!-- Beige claro -->
+    <color name="hispanis_accent">#5D4037</color> <!-- Marrón medio -->
 </resources>

@@ -1,13 +1,60 @@
 <resources>
     <string name="app_name">HispalisMonumentAPP</string>
-    <!-- TODO: Remove or change this placeholder text -->
-    <string name="hello_blank_fragment">Hello blank fragment</string>
     <string name="login_user_input">Usuario</string>
     <string name="login_pass_input">Contraseña</string>
     <string name="login_log_button">Ingresar</string>
     <string name="login_or_text_view">O</string>
     <string name="login_signup_button">Registrarse</string>
+    <string name="es_button">Español</string>
+    <string name="en_button">Inglés</string>
+
     <!-- Strings used for fragments for navigation -->
     <string name="google_maps_api_key">AIzaSyDTieB1jfyrgF_3Q8vzTLsPfHsMbhGqk8w</string>
+
     <string name="monument_image">Imagen del monumento</string>
+    <string name="not_visited">Visita primero el monumento</string>
+
+    <string name="add_monument_etnombre">Nombre del Monumento</string>
+    <string name="add_monument_et_es_descripcion">Descripción en español</string>
+    <string name="add_monument_et_en_description">Descripción en inglés</string>
+    <string name="add_monument_btngeneratedescription">Generar descripciones</string>
+    <string name="add_monument_tvselectiontype">Selecciona tipos (max. 3)</string>
+    <string name="add_monument_etlatitud">Latitud</string>
+    <string name="add_monument_etlongitud">Longitud</string>
+    <string name="add_monument_btngetlocation">Usar mi ubicación</string>
+    <string name="add_monument_btnselectimage">Galeria</string>
+    <string name="add_monument_btntakepicture">Cámara</string>
+    <string name="add_monument_bttnUpload">Subir Monumento</string>
+
+    <string name="bttnprevious">Anterior</string>
+    <string name="bttnnext">Siguiente</string>
+    <string name="fragment_home_etsearch">Buscar Monumento</string>
+
+    <string name="fragment_home_optimized">Viaje Optimizado</string>
+    <string name="fragment_home_begin">Iniciar Viaje</string>
+    <string name="fragment_profile_tvvisitedmonument">Monumentos visitados:</string>
+    <string name="fragment_profile_delete">Darse de baja</string>
+    <string name="dialog1_title">¡Bienvenido!</string>
+    <string name="dialog1_message">\"¡Hola! Parece que es la primera vez que usas Hisaplis Monument, dejame hacerte una pequeña guia\"</string>
+    <string name="next">Siguiente</string>
+    <string name="dialog2_title">Ver Monumento</string>
+    <string name="dialog2_message">Puedes ver información de los monumentos si haces click en ellos, pero solo aparecerá si los has visitados, no iba a ser tan facil ¿no?.</string>
+    <string name="dialog3_title">Iniciar Viaje</string>
+    <string name="dialog3_message">Para seleccionar los monumentos que quieres visitar mantenlos pulsados en el orden que quieras ver. \nTambién puedes hacerlo con el recorrido más corto pulsando en \'Viaje Optimizado\'</string>
+    <string name="done">Comenzar</string>
+
+    <string name="nav_memu_home">Inicio</string>
+    <string name="nav_menu_community">Comunidad</string>
+    <string name="nav_menu_profile">Perfil</string>
+
+    <string name="register_username">Nombre de Usuario</string>
+    <string name="register_email">Correo electrónico</string>
+    <string name="register_password">Contraseña</string>
+    <string name="register_button">Registrarse</string>
+
+    <string name="profile_gallery">Galería</string>
+    <string name="profile_camera">Cámara</string>
+    <string name="profile_save">Guardar Cambios</string>
+    <string name="profile_visited_monument">Monumentos visitados</string>
+
 </resources>

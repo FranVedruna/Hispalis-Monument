@@ -1,0 +1,73 @@
+<resources>
+    <!-- Tema base -->
+    <style name="AppTheme" parent="Theme.MaterialComponents.Light.DarkActionBar">
+        <item name="android:textViewStyle">@style/DefaultTextViewStyle</item>
+    </style>
+
+    <!-- Estilo predeterminado para TextViews -->
+    <style name="DefaultTextViewStyle" parent="Widget.MaterialComponents.TextView">
+        <item name="android:fontFamily">@font/roboto_regular</item>
+        <item name="fontFamily">@font/roboto_regular</item>
+        <item name="android:textColor">#D1806E</item>
+    </style>
+
+    <!-- Estilo para Playfair Display -->
+    <style name="PlayfairTextStyle">
+        <item name="android:fontFamily">@font/playfair_display_regular</item>
+        <item name="android:textColor">#AF6159</item>
+    </style>
+
+    <style name="HispanisButtonStyle" parent="Widget.MaterialComponents.Button">
+        <!-- Fuente Playfair Display -->
+        <item name="android:fontFamily">@font/playfair_display_regular</item>
+        <item name="fontFamily">@font/playfair_display_regular</item>
+
+        <!-- Colores del botón -->
+        <item name="backgroundTint">@color/hispanis_accent</item> <!-- Fondo -->
+        <item name="android:textColor">@color/hispanis_light</item> <!-- Texto -->
+        <item name="rippleColor">@color/hispanis_dark</item> <!-- Efecto al pulsar -->
+
+        <!-- Otras propiedades -->
+        <item name="android:textSize">16sp</item>
+        <item name="android:textAllCaps">false</item>
+        <item name="cornerRadius">10dp</item>
+        <!-- Otras propiedades -->
+        <item name="strokeWidth">2dp</item>
+    </style>
+
+
+    <!-- Estilo para EditText -->
+    <style name="HispanisEditTextStyle" parent="Widget.MaterialComponents.TextInputLayout.OutlinedBox">
+        <item name="android:fontFamily">@font/roboto_regular</item>
+        <item name="fontFamily">@font/roboto_regular</item>
+        <item name="boxStrokeColor">#5D4037</item> <!-- Color del borde -->
+        <item name="android:textColor">#3E2723</item> <!-- Color del texto -->
+        <item name="android:textColorHint">#5D4037</item> <!-- Color del hint -->
+        <item name="boxCornerRadiusTopStart">4dp</item>
+        <item name="boxCornerRadiusTopEnd">4dp</item>
+        <item name="boxCornerRadiusBottomStart">4dp</item>
+        <item name="boxCornerRadiusBottomEnd">4dp</item>
+        <item name="hintTextColor">#5D4037</item>
+    </style>
+
+    <style name="HispanisSpinnerStyle" parent="Widget.AppCompat.Spinner">
+        <item name="android:fontFamily">@font/roboto_regular</item>
+        <item name="android:textColor">#FF000000</item>
+        <item name="android:background">@drawable/spinner_hispanis_background</item>
+        <item name="android:popupBackground">#D7CCC8</item> <!-- Fondo beige -->
+        <item name="android:dropDownSelector">#5D4037</item> <!-- Color de selección marrón -->
+        <item name="android:popupTheme">@style/SpinnerDropdownStyle</item> <!-- Tema para el dropdown -->
+    </style>
+
+    <!-- Estilo para los ítems del dropdown -->
+    <style name="SpinnerDropdownStyle" parent="ThemeOverlay.AppCompat.Light">
+        <item name="android:textColor">#FF000000</item> <!-- Texto negro en el dropdown -->
+        <item name="android:background">#D7CCC8</item> <!-- Fondo beige -->
+    </style>
+
+    <style name="RoundedImageView" parent="">
+        <item name="cornerFamily">rounded</item>
+        <item name="cornerSize">50%</item>
+    </style>
+
+</resources>
