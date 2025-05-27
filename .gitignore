@@ -47,7 +47,4 @@ google-services.json
 !mvn/wrapper/maven-wrapper.jar
 
 ### Configuración específica
-application.properties
-application.yml
-.env
 /API/src/main/resources/static/images
