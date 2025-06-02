@@ -126,6 +126,16 @@
             android:textSize="30sp"
             style="@style/PlayfairTextStyle"
             android:layout_marginBottom="8dp"/>
+        <TextView
+            android:id="@+id/tvVisitedMonuments"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/profile_visited_monument"
+            android:textAlignment="center"
+            android:textSize="30sp"
+            style="@style/PlayfairTextStyle"
+            android:visibility="gone"
+            android:layout_marginBottom="8dp"/>
 
         <androidx.recyclerview.widget.RecyclerView
             android:id="@+id/rvVisitedMonuments"

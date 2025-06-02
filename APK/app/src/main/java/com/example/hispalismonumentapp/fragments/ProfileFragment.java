@@ -2,16 +2,17 @@ package com.example.hispalismonumentapp.fragments;
 
 import android.app.Activity;
 import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
 import android.net.Uri;
 import android.os.Bundle;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
 
 import android.provider.MediaStore;
-import android.text.TextUtils;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -32,8 +33,8 @@ import com.example.hispalismonumentapp.activities.LoginActivity;
 import com.example.hispalismonumentapp.adapters.MonumentAdapterHome;
 import com.example.hispalismonumentapp.models.MonumentoDTO;
 import com.example.hispalismonumentapp.models.UserDTO;
-import com.example.hispalismonumentapp.network.ApiClient;
-import com.example.hispalismonumentapp.network.ApiService;
+import com.example.hispalismonumentapp.network.hispalisapi.ApiClient;
+import com.example.hispalismonumentapp.network.hispalisapi.ApiService;
 import com.example.hispalismonumentapp.network.TokenManager;
 
 import java.io.File;
@@ -51,8 +52,6 @@ import okhttp3.ResponseBody;
 import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
-import retrofit2.Retrofit;
-import retrofit2.converter.gson.GsonConverterFactory;
 
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
@@ -83,12 +82,7 @@ public class ProfileFragment extends Fragment {
 
         tokenManager = new TokenManager(requireContext());
 
-        Retrofit retrofit = new Retrofit.Builder()
-                .baseUrl("http://hispalismonuments.duckdns.org:8080/")
-                .addConverterFactory(GsonConverterFactory.create())
-                .build();
-
-        apiService = retrofit.create(ApiService.class);
+        apiService = ApiClient.getApiService();
     }
 
     @Override
@@ -98,7 +92,7 @@ public class ProfileFragment extends Fragment {
 
         tvUserName = view.findViewById(R.id.tvUserName);
         tvUserRole = view.findViewById(R.id.tvUserRole);
-//        tvVisitedMonuments = view.findViewById(R.id.tvVisitedMonuments);
+        tvVisitedMonuments = view.findViewById(R.id.tvVisitedMonuments);
         progressBar = view.findViewById(R.id.progressBar);
         ivProfilePicture = view.findViewById(R.id.ivProfilePicture);
         layoutImageButtons = view.findViewById(R.id.layoutImageButtons);
@@ -125,9 +119,11 @@ public class ProfileFragment extends Fragment {
         });
 
         btnTakePhoto.setOnClickListener(v -> {
-            Intent intent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
-            if (intent.resolveActivity(requireActivity().getPackageManager()) != null) {
-                startActivityForResult(intent, REQUEST_CAMERA);
+            if (ContextCompat.checkSelfPermission(requireContext(), android.Manifest.permission.CAMERA)
+                    != PackageManager.PERMISSION_GRANTED) {
+                requestCameraPermission();
+            } else {
+                openCamera();
             }
         });
 
@@ -152,7 +148,16 @@ public class ProfileFragment extends Fragment {
         return view;
     }
 
+    private void requestCameraPermission() {
+        requestPermissions(new String[]{android.Manifest.permission.CAMERA}, REQUEST_CAMERA);
+    }
 
+    private void openCamera() {
+        Intent intent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
+        if (intent.resolveActivity(requireActivity().getPackageManager()) != null) {
+            startActivityForResult(intent, REQUEST_CAMERA);
+        }
+    }
     private void deleteUserAccount() {
         String token = tokenManager.getToken();
         if (token == null) {

@@ -1,4 +1,4 @@
-package com.example.hispalismonumentapp.network;
+package com.example.hispalismonumentapp.network.map;
 
 import com.google.gson.annotations.SerializedName;
 

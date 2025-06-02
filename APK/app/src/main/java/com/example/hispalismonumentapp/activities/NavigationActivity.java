@@ -1,6 +1,7 @@
 package com.example.hispalismonumentapp.activities;
 
 import android.Manifest;
+import android.app.AlertDialog;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.graphics.Color;
@@ -21,11 +22,11 @@ import com.bumptech.glide.load.model.GlideUrl;
 import com.bumptech.glide.load.model.LazyHeaders;
 import com.example.hispalismonumentapp.R;
 import com.example.hispalismonumentapp.models.MonumentoDTO;
-import com.example.hispalismonumentapp.network.ApiClient;
-import com.example.hispalismonumentapp.network.ApiService;
-import com.example.hispalismonumentapp.network.DirectionsMapResponse;
-import com.example.hispalismonumentapp.network.GoogleMapApiClient;
-import com.example.hispalismonumentapp.network.GoogleMapApiService;
+import com.example.hispalismonumentapp.network.hispalisapi.ApiClient;
+import com.example.hispalismonumentapp.network.hispalisapi.ApiService;
+import com.example.hispalismonumentapp.network.map.DirectionsMapResponse;
+import com.example.hispalismonumentapp.network.map.GoogleMapApiClient;
+import com.example.hispalismonumentapp.network.map.GoogleMapApiService;
 import com.example.hispalismonumentapp.network.TokenManager;
 import com.google.android.gms.location.FusedLocationProviderClient;
 import com.google.android.gms.location.LocationCallback;
@@ -424,30 +425,47 @@ public class NavigationActivity extends FragmentActivity implements OnMapReadyCa
             currentMonumentIndex++;
 
             if (currentMonumentIndex < monumentList.size()) {
-                // Actualizar la visualización del monumento
+                // Actualizar la visualización del siguiente monumento
                 updateCurrentMonumentDisplay(monumentList.get(currentMonumentIndex));
                 updateRouteIfNeeded(userLocation);
             } else {
-                Toast.makeText(this, "¡Ruta completada!", Toast.LENGTH_LONG).show();
-                fusedLocationClient.removeLocationUpdates(locationCallback);
-                Intent intent = new Intent(this, HomeActivity.class);
-                startActivity(intent);
-                finish();
+                // Mostrar el diálogo de finalización
+                new AlertDialog.Builder(this)
+                        .setTitle(getString(R.string.navigation_title))
+                        .setMessage(getString(R.string.navigation_message))
+                        .setPositiveButton(getString(R.string.next), (dialog, which) -> {
+                            fusedLocationClient.removeLocationUpdates(locationCallback);
+                            Intent intent = new Intent(this, HomeActivity.class);
+                            startActivity(intent);
+                            finish();
+                        })
+                        .setCancelable(false)
+                        .show();
             }
         }
     }
+
 
 
     // Llama a la API para marcar un monumento como visitado
     private void markMonumentAsVisited(MonumentoDTO monument) {
         ApiService apiService = ApiClient.getApiService();
         apiService.marcarVisitado("Bearer " + authToken, monument.getNombre()).enqueue(new Callback<Void>() {
-            @Override
             public void onResponse(Call<Void> call, Response<Void> response) {
+                String title = response.isSuccessful() ?
+                        "Monumento visitado" :
+                        "Información";
+
                 String message = response.isSuccessful() ?
-                        "Monumento visitado: " + monument.getNombre() :
-                        "Error al marcar como visitado";
-                Toast.makeText(NavigationActivity.this, message, Toast.LENGTH_SHORT).show();
+                        "Has visitado: " + monument.getNombre() :
+                        "Ya habías visitado este monumento anteriormente";
+
+                new AlertDialog.Builder(NavigationActivity.this)
+                        .setTitle(title)
+                        .setMessage(message)
+                        .setPositiveButton("Aceptar", null) // null hace que el diálogo se cierre al pulsar
+                        .setCancelable(false)
+                        .show();
             }
 
             @Override

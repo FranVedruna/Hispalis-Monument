@@ -15,7 +15,6 @@ import com.example.hispalismonumentapp.network.TokenManager;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 
 import android.app.AlertDialog;
-import android.content.DialogInterface;
 import android.content.SharedPreferences;
 
 public class HomeActivity extends AppCompatActivity {
@@ -27,14 +26,16 @@ public class HomeActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_home);
+
         tokenManager = new TokenManager(this);
         if (!checkAuth()) {
             return;
         }
+        checkAndShowIntroDialogs();
         initializeViews();
         setupNavigation();
+
         loadInitialFragment();
-        checkAndShowIntroDialogs();
     }
 
     /**
@@ -101,14 +102,13 @@ public class HomeActivity extends AppCompatActivity {
      * Muestra tres ventanas de diálogo informativas la primera vez que se abre la aplicación.
      */
     private void checkAndShowIntroDialogs() {
-        SharedPreferences prefs = getSharedPreferences("app_prefs", MODE_PRIVATE);
+        SharedPreferences prefs = getSharedPreferences("intro_dialog_prefs", MODE_PRIVATE);
         boolean isFirstRun = prefs.getBoolean("first_run", true);
 
         if (isFirstRun) {
             showDialog1(() -> {
                 showDialog2(() -> {
                     showDialog3(() -> {
-                        // Final: guardar que ya se mostraron los diálogos
                         prefs.edit().putBoolean("first_run", false).apply();
                     });
                 });

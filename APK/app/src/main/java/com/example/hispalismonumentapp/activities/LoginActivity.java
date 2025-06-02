@@ -14,8 +14,8 @@ import com.example.hispalismonumentapp.LocaleHelper;
 import com.example.hispalismonumentapp.R;
 import com.example.hispalismonumentapp.models.auth.AuthResponse;
 import com.example.hispalismonumentapp.models.auth.LoginRequest;
-import com.example.hispalismonumentapp.network.ApiClient;
-import com.example.hispalismonumentapp.network.ApiService;
+import com.example.hispalismonumentapp.network.hispalisapi.ApiClient;
+import com.example.hispalismonumentapp.network.hispalisapi.ApiService;
 import com.example.hispalismonumentapp.network.TokenManager;
 
 import retrofit2.Call;

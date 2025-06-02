@@ -14,8 +14,8 @@ import com.bumptech.glide.load.model.GlideUrl;
 import com.bumptech.glide.load.model.LazyHeaders;
 import com.example.hispalismonumentapp.R;
 import com.example.hispalismonumentapp.models.UserDTO;
-import com.example.hispalismonumentapp.network.ApiClient;
-import com.example.hispalismonumentapp.network.ApiService;
+import com.example.hispalismonumentapp.network.hispalisapi.ApiClient;
+import com.example.hispalismonumentapp.network.hispalisapi.ApiService;
 import com.example.hispalismonumentapp.network.TokenManager;
 
 import java.util.List;
@@ -47,6 +47,7 @@ public class UserActivity extends AppCompatActivity {
         activeBadgeImage = findViewById(R.id.activeBadgeImage);
         medalContainer = findViewById(R.id.medalContainer);
         tokenManager = new TokenManager(this);
+
 
         String userName = getIntent().getStringExtra("userName");
         String token = tokenManager.getToken();
@@ -144,8 +145,6 @@ public class UserActivity extends AppCompatActivity {
                                                     if (Boolean.TRUE.equals(response.body())) {
                                                         activeBadgeImage.setVisibility(View.VISIBLE);
                                                         medalContainer.setVisibility(View.VISIBLE);
-                                                    } else {
-                                                        Toast.makeText(UserActivity.this, "Usuario no activo", Toast.LENGTH_SHORT).show();
                                                     }
                                                 } else {
                                                     Toast.makeText(UserActivity.this, "Respuesta no exitosa", Toast.LENGTH_SHORT).show();
