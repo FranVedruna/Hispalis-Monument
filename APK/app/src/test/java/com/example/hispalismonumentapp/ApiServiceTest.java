@@ -9,7 +9,7 @@ import com.example.hispalismonumentapp.models.auth.LoginRequest;
 import com.example.hispalismonumentapp.models.MonumentoDTO;
 import com.example.hispalismonumentapp.models.MonumentoPageResponse;
 import com.example.hispalismonumentapp.models.TypeDTO;
-import com.example.hispalismonumentapp.network.ApiService;
+import com.example.hispalismonumentapp.network.hispalisapi.ApiService;
 
 import org.junit.Before;
 import org.junit.Test;

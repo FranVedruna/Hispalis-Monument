@@ -17,7 +17,7 @@ import com.bumptech.glide.load.model.LazyHeaders;
 import com.example.hispalismonumentapp.R;
 import com.example.hispalismonumentapp.activities.UserActivity;
 import com.example.hispalismonumentapp.models.UserDTO;
-import com.example.hispalismonumentapp.network.ApiClient;
+import com.example.hispalismonumentapp.network.hispalisapi.ApiClient;
 import com.example.hispalismonumentapp.network.TokenManager;
 
 import java.util.List;

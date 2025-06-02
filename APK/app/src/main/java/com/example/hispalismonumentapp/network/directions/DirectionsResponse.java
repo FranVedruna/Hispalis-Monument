@@ -1,4 +1,4 @@
-package com.example.hispalismonumentapp.network;
+package com.example.hispalismonumentapp.network.directions;
 
 import java.util.List;
 

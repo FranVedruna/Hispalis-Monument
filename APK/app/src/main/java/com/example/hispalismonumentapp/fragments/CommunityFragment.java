@@ -13,9 +13,8 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.hispalismonumentapp.R;
 import com.example.hispalismonumentapp.adapters.UserAdapter;
-import com.example.hispalismonumentapp.network.ApiClient;
-import com.example.hispalismonumentapp.network.ApiService;
-import com.example.hispalismonumentapp.models.UserDTO;
+import com.example.hispalismonumentapp.network.hispalisapi.ApiClient;
+import com.example.hispalismonumentapp.network.hispalisapi.ApiService;
 import com.example.hispalismonumentapp.models.UserPageResponse;
 import com.example.hispalismonumentapp.network.TokenManager;
 
@@ -32,6 +31,9 @@ public class CommunityFragment extends Fragment {
     private UserAdapter adapter;
     private int currentPage = 0;
     private int totalPages = 1;
+
+    private boolean isViewDestroyed = false;
+    private Call<UserPageResponse> currentCall;
 
     public CommunityFragment() {
         // Required empty public constructor
@@ -70,6 +72,15 @@ public class CommunityFragment extends Fragment {
         return view;
     }
 
+    @Override
+    public void onDestroyView() {
+        super.onDestroyView();
+        isViewDestroyed = true;
+        if (currentCall != null && !currentCall.isCanceled()) {
+            currentCall.cancel();
+        }
+    }
+
     private void loadUsers() {
         TokenManager tokenManager = new TokenManager(requireContext());
         String token = tokenManager.getToken();
@@ -80,11 +91,13 @@ public class CommunityFragment extends Fragment {
         }
 
         ApiService apiService = ApiClient.getApiService();
-        Call<UserPageResponse> call = apiService.getUsers("Bearer " + token, currentPage, 10);
+        currentCall = apiService.getUsers("Bearer " + token, currentPage, 10);
 
-        call.enqueue(new Callback<UserPageResponse>() {
+        currentCall.enqueue(new Callback<UserPageResponse>() {
             @Override
             public void onResponse(Call<UserPageResponse> call, Response<UserPageResponse> response) {
+                if (isViewDestroyed) return;
+
                 if (response.isSuccessful() && response.body() != null) {
                     adapter.updateUsers(response.body().getContent());
                     totalPages = response.body().getTotalPages();
@@ -95,9 +108,10 @@ public class CommunityFragment extends Fragment {
 
             @Override
             public void onFailure(Call<UserPageResponse> call, Throwable t) {
+                if (isViewDestroyed || call.isCanceled()) return;
                 Toast.makeText(getContext(), "Fallo de red", Toast.LENGTH_SHORT).show();
             }
         });
     }
-
 }
+

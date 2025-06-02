@@ -54,4 +54,11 @@
     <string name="profile_save">Save Changes</string>
     <string name="profile_visited_monument">Visited Monuments</string>
 
+    <string name="retry">Retry</string>
+    <string name="register_dialog_error_message">Username or Email\nare already registered</string>
+    <string name="register_dialog_error_title">Error</string>
+    <string name="register_dialog_success_title">Registered User</string>
+    <string name="register_dialog_success_message">The User has been registered</string>
+    <string name="navigation_title">Ruta finalizada</string>
+    <string name="navigation_message">¡Enhorabuena!\nHas terminado la ruta</string>
 </resources>

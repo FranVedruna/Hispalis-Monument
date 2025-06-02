@@ -1,4 +1,4 @@
-package com.example.hispalismonumentapp.network;
+package com.example.hispalismonumentapp.network.map;
 
 import retrofit2.Retrofit;
 import retrofit2.converter.gson.GsonConverterFactory;

@@ -29,10 +29,10 @@ import com.example.hispalismonumentapp.adapters.MonumentAdapterHome;
 import com.example.hispalismonumentapp.models.MonumentoDTO;
 import com.example.hispalismonumentapp.models.MonumentoPageResponse;
 import com.example.hispalismonumentapp.models.UserDTO;
-import com.example.hispalismonumentapp.network.ApiClient;
-import com.example.hispalismonumentapp.network.ApiService;
-import com.example.hispalismonumentapp.network.DirectionsResponse;
-import com.example.hispalismonumentapp.network.GoogleDirectionsService;
+import com.example.hispalismonumentapp.network.hispalisapi.ApiClient;
+import com.example.hispalismonumentapp.network.hispalisapi.ApiService;
+import com.example.hispalismonumentapp.network.directions.DirectionsResponse;
+import com.example.hispalismonumentapp.network.directions.GoogleDirectionsService;
 import com.example.hispalismonumentapp.network.TokenManager;
 import com.google.android.gms.location.FusedLocationProviderClient;
 import com.google.android.gms.location.LocationServices;
@@ -40,7 +40,6 @@ import com.google.android.material.floatingactionbutton.FloatingActionButton;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.atomic.AtomicInteger;
 
 import retrofit2.Call;
 import retrofit2.Callback;
@@ -271,7 +270,7 @@ public class HomeFragment extends Fragment {
     }
 
     private void optimizeRouteFromUserPosition(double userLat, double userLng, List<MonumentoDTO> monuments) {
-        if (monuments == null || monuments.size() < 2) {
+        if (monuments == null) {
             Toast.makeText(requireContext(), "Se necesitan al menos 2 monumentos", Toast.LENGTH_SHORT).show();
             return;
         }
@@ -397,9 +396,6 @@ public class HomeFragment extends Fragment {
 
         adapter.setOnLongItemClickListener((view, position) -> {
             updateSelectionControls();
-            Toast.makeText(requireContext(),
-                    adapter.getSelectedMonuments().size() + " monumentos seleccionados",
-                    Toast.LENGTH_SHORT).show();
         });
     }
 

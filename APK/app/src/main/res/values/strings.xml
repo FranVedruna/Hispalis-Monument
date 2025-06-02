@@ -56,5 +56,12 @@
     <string name="profile_camera">Cámara</string>
     <string name="profile_save">Guardar Cambios</string>
     <string name="profile_visited_monument">Monumentos visitados</string>
+    <string name="retry">Volver a intentar</string>
+    <string name="register_dialog_error_message">Usuario o correo electrónico\nya registrados</string>
+    <string name="register_dialog_error_title">Error</string>
+    <string name="register_dialog_success_title">Usuario Registrado</string>
+    <string name="register_dialog_success_message">El usuario ha sido registrado.</string>
+    <string name="navigation_title">Ruta finalizada</string>
+    <string name="navigation_message">¡Enhorabuena!\nHas terminado la ruta</string>
 
 </resources>

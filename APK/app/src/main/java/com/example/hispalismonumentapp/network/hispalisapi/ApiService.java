@@ -1,4 +1,4 @@
-package com.example.hispalismonumentapp.network;
+package com.example.hispalismonumentapp.network.hispalisapi;
 
 
 import com.example.hispalismonumentapp.models.UserDTO;

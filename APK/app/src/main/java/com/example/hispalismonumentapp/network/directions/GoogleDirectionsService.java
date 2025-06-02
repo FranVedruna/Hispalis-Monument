@@ -1,4 +1,6 @@
-package com.example.hispalismonumentapp.network;
+package com.example.hispalismonumentapp.network.directions;
+
+import com.example.hispalismonumentapp.network.map.DirectionsMapResponse;
 
 import retrofit2.Call;
 import retrofit2.http.GET;

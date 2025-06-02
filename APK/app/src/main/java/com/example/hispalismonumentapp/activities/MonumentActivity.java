@@ -19,8 +19,8 @@ import com.example.hispalismonumentapp.R;
 import com.example.hispalismonumentapp.models.MonumentoDTO;
 import com.example.hispalismonumentapp.models.TypeDTO;
 import com.example.hispalismonumentapp.models.UserDTO;
-import com.example.hispalismonumentapp.network.ApiClient;
-import com.example.hispalismonumentapp.network.ApiService;
+import com.example.hispalismonumentapp.network.hispalisapi.ApiClient;
+import com.example.hispalismonumentapp.network.hispalisapi.ApiService;
 import com.example.hispalismonumentapp.network.TokenManager;
 import android.widget.Button;
 
