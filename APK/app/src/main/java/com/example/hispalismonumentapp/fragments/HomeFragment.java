@@ -65,7 +65,8 @@ public class HomeFragment extends Fragment {
     private int currentPage = 0;
     private int totalPages = 1;
     CheckBox cbOptimizedTrip;
-
+    private Call<UserDTO> userCall;
+    private Call<MonumentoPageResponse> monumentoPageResponseCall;
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
@@ -114,9 +115,9 @@ public class HomeFragment extends Fragment {
         }
 
         ApiService apiService = ApiClient.getApiService();
-        Call<UserDTO> call = apiService.getCurrentUser("Bearer " + token);
+        userCall = apiService.getCurrentUser("Bearer " + token);
 
-        call.enqueue(new Callback<UserDTO>() {
+        userCall.enqueue(new Callback<UserDTO>() {
             @Override
             public void onResponse(Call<UserDTO> call, Response<UserDTO> response) {
                 if (response.isSuccessful() && response.body() != null) {
@@ -134,6 +135,18 @@ public class HomeFragment extends Fragment {
                 Log.e("MonumentsFragment", "Error al obtener información del usuario", t);
             }
         });
+    }
+
+    @Override
+    public void onDestroyView() {
+        super.onDestroyView();
+        // Cancelar todas las peticiones en curso
+        if (monumentoPageResponseCall != null) {
+            monumentoPageResponseCall.cancel();
+        }
+        if (userCall != null) {
+            userCall.cancel();
+        }
     }
 
     private void setupFab() {
@@ -181,7 +194,7 @@ public class HomeFragment extends Fragment {
         }
 
         ApiService apiService = ApiClient.getApiService();
-        Call<MonumentoPageResponse> call = apiService.searchMonumentsByPartialName(
+        monumentoPageResponseCall = apiService.searchMonumentsByPartialName(
                 "Bearer " + token,
                 name,
                 page,
@@ -189,7 +202,7 @@ public class HomeFragment extends Fragment {
                 "nombre,asc"
         );
 
-        call.enqueue(new Callback<MonumentoPageResponse>() {
+        monumentoPageResponseCall.enqueue(new Callback<MonumentoPageResponse>() {
             @Override
             public void onResponse(Call<MonumentoPageResponse> call, Response<MonumentoPageResponse> response) {
                 showLoading(false);
@@ -406,23 +419,38 @@ public class HomeFragment extends Fragment {
     }
 
     private void fetchMonumentsFromApi(int page) {
+        // Verificar que el fragment esté activo antes de hacer la petición
+        if (!isAdded() || getContext() == null) {
+            return;
+        }
+
         String token = tokenManager.getToken();
         if (token == null || token.isEmpty()) {
             showError("Token no válido");
             return;
         }
 
+        // Cancelar petición anterior si existe
+        if (monumentoPageResponseCall != null) {
+            monumentoPageResponseCall.cancel();
+        }
+
         ApiService apiService = ApiClient.getApiService();
-        Call<MonumentoPageResponse> call = apiService.getMonumentos(
+        monumentoPageResponseCall = apiService.getMonumentos(
                 "Bearer " + token,
                 page,
                 PAGE_SIZE,
                 "nombre,asc"
         );
 
-        call.enqueue(new Callback<MonumentoPageResponse>() {
+        monumentoPageResponseCall.enqueue(new Callback<MonumentoPageResponse>() {
             @Override
             public void onResponse(Call<MonumentoPageResponse> call, Response<MonumentoPageResponse> response) {
+                // Verificar que el fragment esté todavía activo
+                if (!isAdded() || getContext() == null) {
+                    return;
+                }
+
                 showLoading(false);
 
                 if (response.isSuccessful()) {
@@ -444,8 +472,9 @@ public class HomeFragment extends Fragment {
 
             @Override
             public void onFailure(Call<MonumentoPageResponse> call, Throwable t) {
-                showLoading(false);
-                if (!call.isCanceled()) {
+                // Solo procesar el error si no fue cancelado y el fragment está activo
+                if (!call.isCanceled() && isAdded() && getContext() != null) {
+                    showLoading(false);
                     Log.e("NETWORK_ERROR", "Error de conexión", t);
                     showError("Error de conexión: " + t.getMessage());
                 }

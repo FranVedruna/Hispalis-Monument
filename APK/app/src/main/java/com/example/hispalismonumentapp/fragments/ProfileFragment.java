@@ -75,13 +75,13 @@ public class ProfileFragment extends Fragment {
     private RecyclerView rvVisitedMonuments;
     private MonumentAdapterHome monumentAdapter;
     private List<MonumentoDTO> visitedMonuments = new ArrayList<>();
+    private Call<UserDTO> currentUserCall;
+    private Call<Integer> visitedCountCall;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-
         tokenManager = new TokenManager(requireContext());
-
         apiService = ApiClient.getApiService();
     }
 
@@ -148,6 +148,18 @@ public class ProfileFragment extends Fragment {
         return view;
     }
 
+    @Override
+    public void onDestroyView() {
+        super.onDestroyView();
+        // Cancelar todas las peticiones en curso
+        if (currentUserCall != null) {
+            currentUserCall.cancel();
+        }
+        if (visitedCountCall != null) {
+            visitedCountCall.cancel();
+        }
+    }
+
     private void requestCameraPermission() {
         requestPermissions(new String[]{android.Manifest.permission.CAMERA}, REQUEST_CAMERA);
     }
@@ -191,6 +203,9 @@ public class ProfileFragment extends Fragment {
     }
 
     private void getVisitedCountAndHandle(String username) {
+        // Verificar que el fragment esté activo
+        if (!isAdded() || getContext() == null) return;
+
         String token = tokenManager.getToken();
         if (token == null) {
             showError("No autenticado");
@@ -198,18 +213,25 @@ public class ProfileFragment extends Fragment {
         }
         String authHeader = "Bearer " + token;
 
-        apiService.getVisitedMonumentCount(authHeader, username).enqueue(new Callback<Integer>() {
+        // Cancelar petición anterior si existe
+        if (visitedCountCall != null) {
+            visitedCountCall.cancel();
+        }
+
+        visitedCountCall = apiService.getVisitedMonumentCount(authHeader, username);
+        visitedCountCall.enqueue(new Callback<Integer>() {
             @Override
             public void onResponse(Call<Integer> call, Response<Integer> response) {
+                // Verificar que el fragment esté activo
+                if (!isAdded() || getContext() == null) return;
+
                 progressBar.setVisibility(View.GONE);
                 if (response.isSuccessful()) {
                     int count = response.body();
                     Log.d("VisitedCount", "Monumentos visitados: " + count);
 
-                    // Ocultar medalla primero
                     ivMedal.setVisibility(View.GONE);
 
-                    // Cambiar medalla según el número de monumentos
                     if (count >= 5 && count < 10) {
                         ivMedal.setVisibility(View.VISIBLE);
                         ivMedal.setImageResource(R.drawable.medalla_bronce);
@@ -219,8 +241,6 @@ public class ProfileFragment extends Fragment {
                     } else if (count >= 15) {
                         ivMedal.setVisibility(View.VISIBLE);
                         ivMedal.setImageResource(R.drawable.medalla_oro);
-                    } else {
-                        ivMedal.setVisibility(View.GONE);
                     }
                 } else {
                     showError("Error al obtener el recuento: " + response.code());
@@ -229,8 +249,10 @@ public class ProfileFragment extends Fragment {
 
             @Override
             public void onFailure(Call<Integer> call, Throwable t) {
-                progressBar.setVisibility(View.GONE);
-                showError("Fallo en recuento: " + t.getMessage());
+                if (!call.isCanceled() && isAdded() && getContext() != null) {
+                    progressBar.setVisibility(View.GONE);
+                    showError("Fallo en recuento: " + t.getMessage());
+                }
             }
         });
     }
@@ -245,6 +267,9 @@ public class ProfileFragment extends Fragment {
     }
 
     private void loadUserData() {
+        // Verificar que el fragment esté activo
+        if (!isAdded() || getContext() == null) return;
+
         String token = tokenManager.getToken();
         if (token == null) {
             showError("No autenticado");
@@ -254,14 +279,21 @@ public class ProfileFragment extends Fragment {
         progressBar.setVisibility(View.VISIBLE);
         String authHeader = "Bearer " + token;
 
-        apiService.getCurrentUser(authHeader).enqueue(new Callback<UserDTO>() {
+        // Cancelar petición anterior si existe
+        if (currentUserCall != null) {
+            currentUserCall.cancel();
+        }
+
+        currentUserCall = apiService.getCurrentUser(authHeader);
+        currentUserCall.enqueue(new Callback<UserDTO>() {
             @Override
             public void onResponse(Call<UserDTO> call, Response<UserDTO> response) {
+                // Verificar que el fragment esté activo
+                if (!isAdded() || getContext() == null) return;
+
                 if (response.isSuccessful() && response.body() != null) {
                     UserDTO user = response.body();
                     displayUserData(user);
-
-                    // Llamada adicional al endpoint /visited/count
                     getVisitedCountAndHandle(user.getUserName());
                 } else {
                     progressBar.setVisibility(View.GONE);
@@ -271,8 +303,10 @@ public class ProfileFragment extends Fragment {
 
             @Override
             public void onFailure(Call<UserDTO> call, Throwable t) {
-                progressBar.setVisibility(View.GONE);
-                showError("Error de conexión: " + t.getMessage());
+                if (!call.isCanceled() && isAdded() && getContext() != null) {
+                    progressBar.setVisibility(View.GONE);
+                    showError("Error de conexión: " + t.getMessage());
+                }
             }
         });
     }
@@ -281,7 +315,7 @@ public class ProfileFragment extends Fragment {
     private void displayUserData(UserDTO user) {
         tvUserName.setText(user.getUserName());
         tvUserRole.setText(user.getUserRol());
-
+        if (!isAdded() || getContext() == null) return;
         String token = tokenManager.getToken();
 
         // Cargar foto de perfil (código existente)
@@ -353,7 +387,7 @@ public class ProfileFragment extends Fragment {
             tvVisitedMonuments.setText("No se pudieron cargar los monumentos visitados");
             return;
         }
-
+        if (!isAdded() || getContext() == null) return;
         // Actualizar RecyclerView
         monumentAdapter.updateData(monuments);
 
@@ -402,7 +436,7 @@ public class ProfileFragment extends Fragment {
 
     private void uploadProfilePhoto(Uri imageUri) {
         progressBar.setVisibility(View.VISIBLE);
-
+        if (!isAdded() || getContext() == null) return;
         try {
             // Usa el mismo método que ya tienes para crear el archivo temporal
             File file = getFileFromUri(imageUri);
@@ -474,6 +508,8 @@ public class ProfileFragment extends Fragment {
     }
 
     private void showError(String message) {
-        Toast.makeText(getContext(), message, Toast.LENGTH_SHORT).show();
+        if (isAdded() && getContext() != null) {
+            Toast.makeText(getContext(), message, Toast.LENGTH_SHORT).show();
+        }
     }
 }
