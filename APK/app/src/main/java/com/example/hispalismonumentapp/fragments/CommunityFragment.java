@@ -13,10 +13,10 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.hispalismonumentapp.R;
 import com.example.hispalismonumentapp.adapters.UserAdapter;
-import com.example.hispalismonumentapp.network.hispalisapi.ApiClient;
-import com.example.hispalismonumentapp.network.hispalisapi.ApiService;
 import com.example.hispalismonumentapp.models.UserPageResponse;
 import com.example.hispalismonumentapp.network.TokenManager;
+import com.example.hispalismonumentapp.network.hispalisapi.ApiClient;
+import com.example.hispalismonumentapp.network.hispalisapi.ApiService;
 
 import java.util.ArrayList;
 
@@ -31,25 +31,20 @@ public class CommunityFragment extends Fragment {
     private UserAdapter adapter;
     private int currentPage = 0;
     private int totalPages = 1;
-
-    private boolean isViewDestroyed = false;
     private Call<UserPageResponse> currentCall;
-
-    public CommunityFragment() {
-        // Required empty public constructor
-    }
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_community, container, false);
 
+        // Configurar RecyclerView
         recyclerView = view.findViewById(R.id.recyclerViewUsers);
         recyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
-
         adapter = new UserAdapter(getContext(), new ArrayList<>());
         recyclerView.setAdapter(adapter);
 
+        // Configurar botones de paginación
         buttonNext = view.findViewById(R.id.buttonNext);
         buttonPrevious = view.findViewById(R.id.buttonPrevious);
 
@@ -67,7 +62,8 @@ public class CommunityFragment extends Fragment {
             }
         });
 
-        loadUsers(); // carga inicial
+        // Carga inicial de datos
+        loadUsers();
 
         return view;
     }
@@ -75,13 +71,19 @@ public class CommunityFragment extends Fragment {
     @Override
     public void onDestroyView() {
         super.onDestroyView();
-        isViewDestroyed = true;
-        if (currentCall != null && !currentCall.isCanceled()) {
+        // Cancelar petición en curso al salir del fragment
+        if (currentCall != null) {
             currentCall.cancel();
         }
     }
 
     private void loadUsers() {
+        // Verificar que el fragment esté activo
+        if (!isAdded() || getContext() == null) {
+            return;
+        }
+
+        // Obtener token
         TokenManager tokenManager = new TokenManager(requireContext());
         String token = tokenManager.getToken();
 
@@ -90,17 +92,29 @@ public class CommunityFragment extends Fragment {
             return;
         }
 
+        // Cancelar petición anterior si existe
+        if (currentCall != null) {
+            currentCall.cancel();
+        }
+
+        // Realizar nueva petición
         ApiService apiService = ApiClient.getApiService();
         currentCall = apiService.getUsers("Bearer " + token, currentPage, 10);
 
         currentCall.enqueue(new Callback<UserPageResponse>() {
             @Override
             public void onResponse(Call<UserPageResponse> call, Response<UserPageResponse> response) {
-                if (isViewDestroyed) return;
+                // Verificar que el fragment esté activo
+                if (!isAdded() || getContext() == null) return;
 
                 if (response.isSuccessful() && response.body() != null) {
+                    // Actualizar UI con los nuevos datos
                     adapter.updateUsers(response.body().getContent());
                     totalPages = response.body().getTotalPages();
+
+                    // Actualizar estado de los botones
+                    buttonNext.setEnabled(currentPage < totalPages - 1);
+                    buttonPrevious.setEnabled(currentPage > 0);
                 } else {
                     Toast.makeText(getContext(), "Error al obtener datos", Toast.LENGTH_SHORT).show();
                 }
@@ -108,10 +122,11 @@ public class CommunityFragment extends Fragment {
 
             @Override
             public void onFailure(Call<UserPageResponse> call, Throwable t) {
-                if (isViewDestroyed || call.isCanceled()) return;
-                Toast.makeText(getContext(), "Fallo de red", Toast.LENGTH_SHORT).show();
+                // Solo mostrar error si no fue cancelado y el fragment está activo
+                if (!call.isCanceled() && isAdded() && getContext() != null) {
+                    Toast.makeText(getContext(), "Fallo de red: " + t.getMessage(), Toast.LENGTH_SHORT).show();
+                }
             }
         });
     }
 }
-
