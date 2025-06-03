@@ -70,7 +70,7 @@ Los puntos que más me motivaron a la hora de hacer Hispalis Monument fueron:
 
 Escanea el siguiente código QR:  
 ![QR de descarga](https://github.com/FranVedruna/Hispalis-Monument/blob/main/images/CodigoQR.png?raw=true)
-O haz clic en el siguiente [enlace](https://github.com/FranVedruna/Hispalis-Monument/releases/download/v1.0.0/app-release.apk).
+O haz clic en el siguiente [enlace](https://github.com/FranVedruna/Hispalis-Monument/releases/download/v1.0.1/app-release.apk).
 
 2. Instalación de la aplicación.
 
