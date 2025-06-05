@@ -72,6 +72,7 @@ Escanea el siguiente código QR:
 ![QR de descarga](https://github.com/FranVedruna/Hispalis-Monument/blob/main/images/CodigoQR.png?raw=true)
 O haz clic en el siguiente [enlace](https://github.com/FranVedruna/Hispalis-Monument/releases/download/v1.0.2/app-release.apk).
 
+
 2. Instalación de la aplicación.
 
 Al ser una instalación externa a la Play Store es muy probable que aparezca el siguiente mensaje:  
