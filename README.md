@@ -84,7 +84,7 @@ Es comprensible la preocupación, pero al pulsar en ‘Descargar de todos modos�
 Ahora pulsa en Instalar y después de unos segundos se habrá instalado Hispalis Monument en su dispositivo móvil.
 
 # Guía de uso
-
+Puedes consultar nuestro manual para un contenido más visual: [enlace](https://www.canva.com/design/DAGpSS2jVJs/5-tYohj6Of_-mq02jzjb7g/edit?utm_content=DAGpSS2jVJs&utm_campaign=designshare&utm_medium=link2&utm_source=sharebutton)
 Una vez haya instalado la aplicación dirígete y haz clic en la aplicación ‘Hispalis Monument’
 
 Ahora se encuentra en la pantalla de ingreso:  
