@@ -335,6 +335,8 @@ public class ProfileFragment extends Fragment {
                             .build()
             );
 
+            Log.d("Foto", fullPhotoUrl);
+
             Glide.with(requireContext())
                     .load(glideUrl)
                     .placeholder(R.drawable.default_user)

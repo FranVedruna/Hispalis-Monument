@@ -1,19 +1,28 @@
 package com.example.hispalismonumentapp.activities;
 
 import android.graphics.Color;
+import android.graphics.drawable.Drawable;
 import android.os.Bundle;
+import android.text.TextUtils;
+import android.util.Log;
 import android.view.View;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.bumptech.glide.Glide;
+import com.bumptech.glide.load.DataSource;
 import com.bumptech.glide.load.engine.DiskCacheStrategy;
+import com.bumptech.glide.load.engine.GlideException;
 import com.bumptech.glide.load.model.GlideUrl;
 import com.bumptech.glide.load.model.LazyHeaders;
+import com.bumptech.glide.request.RequestListener;
+import com.bumptech.glide.request.RequestOptions;
+import com.bumptech.glide.request.target.Target;
 import com.example.hispalismonumentapp.LocaleHelper;
 import com.example.hispalismonumentapp.R;
 import com.example.hispalismonumentapp.models.MonumentoDTO;
@@ -146,19 +155,60 @@ public class MonumentActivity extends AppCompatActivity {
 
         tvDescripcion.setText(descripcion);
 
-        if (monument.getFotoUrl() != null && !monument.getFotoUrl().isEmpty()) {
-            String fullUrl = "http://hispalismonuments.duckdns.org:8080" + monument.getFotoUrl();
+        // --- Carga segura de la imagen ---
+        try {
+            String imageUrl = monument.getFotoUrl();
 
-            GlideUrl glideUrl = new GlideUrl(fullUrl, new LazyHeaders.Builder()
-                    .addHeader("Authorization", "Bearer " + authToken)
-                    .build());
+            if (TextUtils.isEmpty(imageUrl) || authToken == null) {
+                imageView.setImageResource(R.drawable.monument_icon);
+            } else {
+                // Asegurar URL completa
+                if (!imageUrl.startsWith("http")) {
+                    imageUrl = ApiClient.getBaseUrl() + (imageUrl.startsWith("/") ? imageUrl.substring(1) : imageUrl);
+                }
 
-            Glide.with(this)
-                    .load(glideUrl)
-                    .diskCacheStrategy(DiskCacheStrategy.ALL)
-                    .into(imageView);
+                Log.d("ImageLoad", "URL: " + imageUrl);
+                Log.d("ImageLoad", "Token length: " + authToken.length());
+
+                GlideUrl glideUrl = new GlideUrl(imageUrl, new LazyHeaders.Builder()
+                        .addHeader("Authorization", "Bearer " + authToken.trim())
+                        .addHeader("Accept", "image/*")
+                        .build());
+
+                Glide.with(this)
+                        .load(glideUrl)
+                        .apply(new RequestOptions()
+                                .placeholder(R.drawable.monument_icon)
+                                .error(R.drawable.monument_icon)
+                                .diskCacheStrategy(DiskCacheStrategy.ALL))
+                        .listener(new RequestListener<Drawable>() {
+                            @Override
+                            public boolean onLoadFailed(@Nullable GlideException e, Object model,
+                                                        Target<Drawable> target, boolean isFirstResource) {
+                                if (e != null) {
+                                    Log.e("GlideError", "Load failed: " + e.getMessage());
+                                    for (Throwable t : e.getRootCauses()) {
+                                        Log.e("GlideRootCause", t.getMessage());
+                                    }
+                                }
+                                return false;
+                            }
+
+                            @Override
+                            public boolean onResourceReady(Drawable resource, Object model,
+                                                           Target<Drawable> target, DataSource dataSource, boolean isFirstResource) {
+                                return false;
+                            }
+                        })
+                        .into(imageView);
+            }
+
+        } catch (Exception e) {
+            Log.e("ImageError", "Exception in image loading", e);
+            imageView.setImageResource(R.drawable.monument_icon);
         }
 
+        // --- Cargar tipos ---
         linearLayoutTipos.removeAllViews();
 
         if (monument.getTypes() != null) {
@@ -181,6 +231,7 @@ public class MonumentActivity extends AppCompatActivity {
             }
         }
     }
+
 
     /**
      * Verifica si el usuario tiene el rol ADMIN y, en ese caso, muestra el botón de eliminar.

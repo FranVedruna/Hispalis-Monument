@@ -79,7 +79,8 @@ public class LoginActivity extends AppCompatActivity {
         String[] servers = {
                 "hispalismonuments.duckdns.org",
                 "localhost",
-                "10.0.2.2 (Emulador)"
+                "10.0.2.2 (Emulador)",
+                "api-hispalis.fly.dev"
         };
 
         ArrayAdapter<String> adapter = new ArrayAdapter<>(
@@ -111,6 +112,8 @@ public class LoginActivity extends AppCompatActivity {
                 return "http://192.168.1.33:8080/"; // Para emulador, localhost se traduce a 10.0.2.2
             case 2: // 10.0.2.2 (Emulador)
                 return "http://10.0.2.2:8080/";
+            case 3:
+                return "https://api-hispalis.fly.dev/";
             default:
                 return "http://hispalismonuments.duckdns.org:8080/";
         }
